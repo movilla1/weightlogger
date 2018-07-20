@@ -2,13 +2,7 @@
 #include <SPI.h>
 #include <SD.h>
 #include <RFID.h>
-#include <MFRC522Debug.h>
-#include <deprecated.h>
-#include <require_cpp11.h>
-#include <MFRC522Hack.h>
-#include <MFRC522.h>
-#include <MFRC522Extended.h>
-
+#include <MFRC522.h>  // Library for Mifare RC522 Devices
 
 /**
  * SD card attached to SPI bus as follows:
@@ -37,14 +31,34 @@ File myFile;
 
 int sys_state;
 
+uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reader
+
+byte storedCard[4];   // Stores an ID read from EEPROM
+byte readCard[4];   // Stores scanned ID read from RFID Module
+
+
 void setup() {
   Wire.begin();
   Serial.setup(4800);
   rtc.begin();
   sys_state = READY
-  if (!SD.begin(chipSelect)) {
-    sys_state = ERROR_SD
+  while(!exit_init) {
+    init_return = SD.begin(chipSelect);
+    if (!init_return && attemps > 3) {
+      sys_state = ERROR_SD
+      exit_init = true;
+    } else {
+      if (init_return) {
+        exit_init = true;
+      } else {
+        sleep(5); //wait 5 seconds
+        attemps++;
+      }
+    }
   }
+  mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
+  mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max); // Max reading distance
+
   myFile = SD.open("datalog.csv", FILE_WRITE);
 }
 
@@ -57,8 +71,9 @@ void loop() {
       show_error(ERROR_RFID);
       break;
     case READ_RFID:
-      read_rfid_value();
-      sys_state = READ_RTC;
+      if (read_rfid_value()) {
+        check_card_and_act(); //checks the card and if its valid, it starts the sequence
+      }
       break;
     case READ_RTC:
       read_rtc_value();
@@ -79,8 +94,86 @@ void loop() {
         check_elapsed_time();
       }
       break;
+    case OPEN_BARRIER:
+      open_barrier();
+      sys_state = READY;
+      break;
     default:
       usleep(10); //sleep while not doing anything
+      break;
   }
 }
 
+uint8_t read_rfid_value() {
+  // Getting ready for Reading PICCs
+  if ( ! mfrc522.PICC_IsNewCardPresent()) { //If a new PICC placed to RFID reader continue
+    return 0;
+  }
+  if ( ! mfrc522.PICC_ReadCardSerial()) {   //Since a PICC placed get Serial and continue
+    return 0;
+  }
+  for ( uint8_t i = 0; i < 4; i++) {  // 4 Byte UIDs
+    readCard[i] = mfrc522.uid.uidByte[i];
+  }
+  mfrc522.PICC_HaltA(); // Stop reading
+  return 1;
+}
+
+
+void show_error(uint8_t error_code) {
+  unit8_t blinks;
+  switch(error_code) {
+    case ERROR_SD:
+      blinks = 2;
+      break;
+    case ERROR_RFID:
+      blinks = 3;
+      break;
+    default:
+      blinks = 1;
+      break;
+  }
+  for (unit8_t i; i < blinks; i++) {
+    digitalWrite(LED, 0); //turn off the LED
+    usleep(300);
+    digitalWrite(LED, 1)
+    usleep(300);
+  }
+}
+
+/**
+ * Readed card must be checked agains the known ones
+ */
+// TODO: properly implement
+bool check_card_and_act() {
+  //do magic and return true if the card is valid, plus set the system status
+  sys_state = READ_RTC;
+  return true;
+}
+
+/**
+ * Read the time and store it
+ */
+// TODO: properly implement
+bool read_rtc_value() {
+  return false;
+}
+
+/**
+ * Read the weight and store it
+ */
+void read_weight() {
+  // TODO: properly implement
+}
+
+void write_values_to_file() {
+  // TODO: properly implement
+}
+
+void check_elapsed_time() {
+  // TODO: implement it
+}
+
+void open_barrier() {
+  // TODO: implement it
+}
