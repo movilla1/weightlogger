@@ -21,12 +21,13 @@ struct card_block {
 #define READY 1
 #define ERROR_SD 2
 #define ERROR_RFID 4
+#define ERROR_RTC 7
 #define READ_RFID 8
 #define READ_RTC 16
 #define READ_WEIGHT 32
 #define OPEN_BARRIER 64
 #define WRITE_RECORD 128
-#define TIMED_WAIT 256
+#define TIMED_WAIT 250
 
 #define LED 13
 #define BARRERA 0
@@ -45,6 +46,8 @@ byte successRead;    // Variable integer to keep if we have Successful Read from
 byte storedCard[4];   // Stores an ID read from EEPROM
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte whos_entering; //stores in ram the card position that's readed
+uint16_t measured_weight; // Stores weight in ram
+DateTime lastReadTime;  //last time readed on the RTC
 
 byte attemps;
 byte time_finished;
@@ -53,9 +56,27 @@ void setup() {
   bool exit_init = false;
   uint8_t init_return;
   Wire.begin();
+  pinMode(LED, OUTPUT);
+  pinMode(BARRERA, OUTPUT);
+  digitalWrite(BARRERA, 0);
+  digitalWrite(LED, 0);
   Serial.begin(4800, SERIAL_8N1);
-  rtc.begin();
+  attemps = 0;
+  while(!exit_init) {
+    init_return = rtc.begin();
+    if (!init_return && attemps > 2) {
+      sys_state = ERROR_RTC;
+      exit_init = true;
+    } else {
+      if (!init_return) {
+        attemps ++;
+      } else {
+        exit_init = true;
+      }
+    }
+  }
   sys_state = READY;
+  attemps = 0;
   while(!exit_init) {
     init_return = SD.begin(CHIP_SELECT_SD);
     if (!init_return && attemps > 3) {
@@ -70,19 +91,20 @@ void setup() {
       }
     }
   }
+  myFile = SD.open("datalog.csv", O_READ | O_WRITE | O_CREAT | O_APPEND);
   mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
   mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max); // Max reading distance
-
-  myFile = SD.open("datalog.csv", FILE_WRITE);
 }
 
 void loop() {
+  if (mfrc522.PICC_IsNewCardPresent()) {
+    sys_state = READ_RFID;
+  }
   switch(sys_state) {
     case ERROR_SD:
-      show_error(ERROR_SD);
-      break;
     case ERROR_RFID:
-      show_error(ERROR_RFID);
+    case ERROR_RTC:
+      show_error(sys_state);
       break;
     case READ_RFID:
       if (read_rfid_value()) {
@@ -143,6 +165,8 @@ void show_error(uint8_t error_code) {
     case ERROR_RFID:
       blinks = 3;
       break;
+    case ERROR_RTC:
+      blinks = 4;
     default:
       blinks = 1;
       break;
@@ -153,12 +177,12 @@ void show_error(uint8_t error_code) {
     digitalWrite(LED, 1);
     delay(300);
   }
+  delay(500); //wait 1/2 second between displays at least;
 }
 
 /**
  * Readed card must be checked agains the known ones
  */
-// TODO: properly implement
 bool check_card_and_act() {
   byte ret = is_known_card(readCard);
   if (ret) {
@@ -169,22 +193,30 @@ bool check_card_and_act() {
 }
 
 /**
- * Read the time and store it
+ * Read the time and store it in memory
  */
-// TODO: properly implement
 bool read_rtc_value() {
-  return false;
+  lastReadTime = rtc.now();
 }
 
 /**
- * Read the weight and store it
+ * Read the weight and store it in memory
  */
 void read_weight() {
   // TODO: properly implement
+  measured_weight = 50;
 }
 
 void write_values_to_file() {
-  // TODO: properly implement
+  char s_date[20];
+  sprintf(s_date, "%s", lastReadTime.format("Y-m-d h:m:s"));
+  myFile.write(s_date);
+  myFile.write(";");
+  myFile.write(whos_entering);
+  myFile.write(":");
+  myFile.write(measured_weight);
+  myFile.write(0x0D);
+  myFile.write(0x0A);
 }
 
 void check_elapsed_time() {
