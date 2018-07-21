@@ -1,7 +1,14 @@
 #include <RTClib.h>
 #include <SPI.h>
 #include <SD.h>
+#include <Wire.h>
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
+#include "eepromblock.h"
+
+struct card_block {
+  byte card_uid[4];
+  byte card_number;
+};
 
 /**
  * SD card attached to SPI bus as follows:
@@ -23,35 +30,42 @@
 
 #define LED 13
 #define BARRERA 0
-#define SD_CS 1
+#define CHIP_SELECT_SD 1
 #define RTC_CS 2
 
+#define MAX_EEPROM_POSITION 200 * sizeof(struct card_block)
 
 File myFile;
 DS3231 rtc;
+MFRC522 mfrc522;
 int sys_state;
 
-uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reader
+byte successRead;    // Variable integer to keep if we have Successful Read from Reader
 
 byte storedCard[4];   // Stores an ID read from EEPROM
 byte readCard[4];   // Stores scanned ID read from RFID Module
+byte whos_entering; //stores in ram the card position that's readed
 
+byte attemps;
+byte time_finished;
 
 void setup() {
+  bool exit_init = false;
+  uint8_t init_return;
   Wire.begin();
-  Serial.setup(4800);
+  Serial.begin(4800, SERIAL_8N1);
   rtc.begin();
-  sys_state = READY
+  sys_state = READY;
   while(!exit_init) {
-    init_return = SD.begin(chipSelect);
+    init_return = SD.begin(CHIP_SELECT_SD);
     if (!init_return && attemps > 3) {
-      sys_state = ERROR_SD
+      sys_state = ERROR_SD;
       exit_init = true;
     } else {
       if (init_return) {
         exit_init = true;
       } else {
-        sleep(5); //wait 5 seconds
+        delay(5000); //wait 5 seconds
         attemps++;
       }
     }
@@ -99,7 +113,7 @@ void loop() {
       sys_state = READY;
       break;
     default:
-      usleep(10); //sleep while not doing anything
+      delay(10); //sleep while not doing anything
       break;
   }
 }
@@ -121,7 +135,7 @@ uint8_t read_rfid_value() {
 
 
 void show_error(uint8_t error_code) {
-  unit8_t blinks;
+  uint8_t blinks;
   switch(error_code) {
     case ERROR_SD:
       blinks = 2;
@@ -133,11 +147,11 @@ void show_error(uint8_t error_code) {
       blinks = 1;
       break;
   }
-  for (unit8_t i; i < blinks; i++) {
+  for (uint8_t i; i < blinks; i++) {
     digitalWrite(LED, 0); //turn off the LED
-    usleep(300);
-    digitalWrite(LED, 1)
-    usleep(300);
+    delay(300);
+    digitalWrite(LED, 1);
+    delay(300);
   }
 }
 
@@ -146,9 +160,12 @@ void show_error(uint8_t error_code) {
  */
 // TODO: properly implement
 bool check_card_and_act() {
-  //do magic and return true if the card is valid, plus set the system status
-  sys_state = READ_RTC;
-  return true;
+  byte ret = is_known_card(readCard);
+  if (ret) {
+    sys_state = READ_RTC;
+    whos_entering = ret;
+  }
+  return ret;
 }
 
 /**
@@ -175,5 +192,47 @@ void check_elapsed_time() {
 }
 
 void open_barrier() {
-  // TODO: implement it
+  digitalWrite(BARRERA, 1);
+  delay(8000); //wait until the barrier acknowledges the open command
+  digitalWrite(BARRERA, 0); //release Barrier switch
+}
+
+bool compare_card(byte card_id[4], struct card_block card) {
+  bool ret_val = true;
+  for (uint8_t i; i < 4; i++) {
+    ret_val &= (card_id[i]==card.card_uid[i]);
+  }
+  return ret_val;
+}
+
+bool is_known_card(byte card_id[4]) {
+  struct card_block card;
+  bool finish = false;
+  int pos = 1; // Pos 0 is for the last written card number
+  byte ret_val = 0;
+  while(!finish) {
+    EEPROM_readBlock(pos, card);
+    if (compare_card(card_id, card)) {
+      finish = true;
+      ret_val = card.card_number;
+    }
+    if (pos > MAX_EEPROM_POSITION) {
+      finish = true;
+      ret_val = false;
+    }
+  }
+  return ret_val;
+}
+
+/**
+ * Stores the card uid and card_number at the position indicated 
+ * positions are from 0 to 199
+ */
+void store_card(struct card_block card, byte position) {
+  int pos = 5 * (position + 1);
+  if ( pos < 200) {  //if we are not full capacity
+    EEPROM_writeBlock(pos, card); //store the card
+  } else {
+    Serial.println("INV_POS");
+  }
 }
