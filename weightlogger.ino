@@ -1,7 +1,6 @@
 #include <RTClib.h>
 #include <SPI.h>
 #include <SD.h>
-#include <RFID.h>
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
 
 /**
@@ -22,13 +21,14 @@
 #define WRITE_RECORD 128
 #define TIMED_WAIT 256
 
+#define LED 13
 #define BARRERA 0
 #define SD_CS 1
 #define RTC_CS 2
 
 
 File myFile;
-
+DS3231 rtc;
 int sys_state;
 
 uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reader

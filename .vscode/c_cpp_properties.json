@@ -3,8 +3,14 @@
         {
             "name": "Linux",
             "includePath": [
+                "/home/mario/.arduino15/packages/arduino/tools/**",
+                "/home/mario/.arduino15/packages/arduino/hardware/avr/1.6.21/**",
                 "${workspaceFolder}/**",
-                "/home/mario/arduino/libraries"
+                "/home/mario/arduino/libraries/**",
+                "/home/mario/arduino/hardware/arduino/avr/cores/arduino/**",
+                "/home/mario/arduino/hardware/tools/avr/include/**",
+                "/home/mario/arduino/hardware/tools/avr/avr/include/**",
+                "/home/mario/Arduino/libraries/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
