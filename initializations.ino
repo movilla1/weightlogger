@@ -8,6 +8,9 @@ void initialize_radio() {
   radio.setAutoAck(1);                     // Ensure autoACK is enabled
   radio.setRetries(2,15);
   radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
+  radio.openWritingPipe(addresses[1]);        // Both radios listen on the same pipes by default, but opposite addresses
+  radio.openReadingPipe(1,addresses[0]);      // Open a reading pipe on address 0, pipe 1
+  radio.startListening();
 }
 
 void initialize_rtc() {

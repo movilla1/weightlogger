@@ -39,7 +39,7 @@ uint16_t measured_weight; // Stores weight in ram
 DateTime enteringTime;  //last time readed on the RTC
 DateTime leavingTime;  //last time readed on the RTC
 DateTime timerStarted;
-
+byte addresses[][6] = {"Node1","Node2","MASTR"};
 /**
  * System setup
  */
@@ -60,15 +60,19 @@ void setup() {
 }
 
 void loop() {
-  if (mfrc522.PICC_IsNewCardPresent()) {
-    sys_state = READ_RFID;
-  }
   switch(sys_state) {
     case ERROR_SD:
     case ERROR_RFID:
     case ERROR_RTC:
       show_error(sys_state);
       break;
+    case READY:
+      if (mfrc522.PICC_IsNewCardPresent()) {
+        sys_state = READ_RFID;
+      }
+      if (radio.available()){
+        sys_state = DATA_LINK;
+      }
     case READ_RFID:
       if (read_rfid_value()) {
         check_card_and_act(ENTERING); //checks the card and if its valid, it starts the sequence
