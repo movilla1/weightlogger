@@ -3,7 +3,10 @@
 #include <SD.h>
 #include <Wire.h>
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
+#include <RF24.h>
+
 #include "eepromblock.h"
+#include "definitions.h"
 
 struct card_block {
   byte card_uid[4];
@@ -18,79 +21,39 @@ struct card_block {
  * CS - pin 4 (for MKRZero SD: SDCARD_SS_PIN)
  */
 
-#define READY 1
-#define ERROR_SD 2
-#define ERROR_RFID 4
-#define ERROR_RTC 7
-#define READ_RFID 8
-#define READ_RTC 16
-#define READ_WEIGHT 32
-#define OPEN_BARRIER 64
-#define WRITE_RECORD 128
-#define TIMED_WAIT 250
 
-#define LED 13
-#define BARRERA 0
-#define CHIP_SELECT_SD 1
-#define RTC_CS 2
-
-#define MAX_EEPROM_POSITION 200 * sizeof(struct card_block)
-
+/**
+ * Global Variables
+ */
 File myFile;
 DS3231 rtc;
 MFRC522 mfrc522;
+RF24 radio(7,8); //RF24 Radio on pins 7 & 8
 int sys_state;
-
 byte successRead;    // Variable integer to keep if we have Successful Read from Reader
-
 byte storedCard[4];   // Stores an ID read from EEPROM
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte whos_entering; //stores in ram the card position that's readed
+byte whos_leaving; //stores in ram the card position that's readed
 uint16_t measured_weight; // Stores weight in ram
-DateTime lastReadTime;  //last time readed on the RTC
+DateTime enteringTime;  //last time readed on the RTC
+DateTime leavingTime;  //last time readed on the RTC
+DateTime timerStarted;
 
-byte attemps;
-byte time_finished;
-
+/**
+ * System setup
+ */
 void setup() {
-  bool exit_init = false;
-  uint8_t init_return;
   Wire.begin();
   pinMode(LED, OUTPUT);
   pinMode(BARRERA, OUTPUT);
   digitalWrite(BARRERA, 0);
   digitalWrite(LED, 0);
-  Serial.begin(4800, SERIAL_8N1);
-  attemps = 0;
-  while(!exit_init) {
-    init_return = rtc.begin();
-    if (!init_return && attemps > 2) {
-      sys_state = ERROR_RTC;
-      exit_init = true;
-    } else {
-      if (!init_return) {
-        attemps ++;
-      } else {
-        exit_init = true;
-      }
-    }
-  }
+  Serial.begin(4800, SERIAL_8N1); // according to wheight measurement device
+  initialize_rtc();
   sys_state = READY;
-  attemps = 0;
-  while(!exit_init) {
-    init_return = SD.begin(CHIP_SELECT_SD);
-    if (!init_return && attemps > 3) {
-      sys_state = ERROR_SD;
-      exit_init = true;
-    } else {
-      if (init_return) {
-        exit_init = true;
-      } else {
-        delay(5000); //wait 5 seconds
-        attemps++;
-      }
-    }
-  }
+  initialize_sd_card();
+  initialize_radio();
   myFile = SD.open("datalog.csv", O_READ | O_WRITE | O_CREAT | O_APPEND);
   mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
   mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max); // Max reading distance
@@ -108,31 +71,41 @@ void loop() {
       break;
     case READ_RFID:
       if (read_rfid_value()) {
-        check_card_and_act(); //checks the card and if its valid, it starts the sequence
+        check_card_and_act(ENTERING); //checks the card and if its valid, it starts the sequence
       }
       break;
     case READ_RTC:
-      read_rtc_value();
+      read_rtc_value(ENTERING);
       sys_state = READ_WEIGHT;
       break;
     case READ_WEIGHT:
       read_weight();
-      sys_state = WRITE_RECORD;
+      sys_state = READ_RFID_2;
+      break;
+    case READ_RFID_2:
+      if (read_rfid_value()) {
+        check_card_and_act(LEAVING);
+      }
+      break;
+    case READ_RTC_2:
+      read_rtc_value(LEAVING);
       break;
     case WRITE_RECORD:
       write_values_to_file();
+      timerStarted = rtc.now();
       sys_state = TIMED_WAIT;
       break;
     case TIMED_WAIT:
-      if (time_finished) {
+      if (check_elapsed_time()) {
         sys_state = OPEN_BARRIER;
-      } else {
-        check_elapsed_time();
       }
       break;
     case OPEN_BARRIER:
       open_barrier();
       sys_state = READY;
+      break;
+    case DATA_LINK:
+      answer_rf();
       break;
     default:
       delay(10); //sleep while not doing anything
@@ -183,11 +156,18 @@ void show_error(uint8_t error_code) {
 /**
  * Readed card must be checked agains the known ones
  */
-bool check_card_and_act() {
+bool check_card_and_act(byte card_slot) {
   byte ret = is_known_card(readCard);
-  if (ret) {
+  if (ret && card_slot == 1) {
     sys_state = READ_RTC;
     whos_entering = ret;
+  } else {
+    if (ret && card_slot == 2) {
+      whos_leaving = ret;
+      sys_state = READ_RTC_2;
+    } else {
+      sys_state = ERROR_INVALID;
+    }
   }
   return ret;
 }
@@ -195,8 +175,16 @@ bool check_card_and_act() {
 /**
  * Read the time and store it in memory
  */
-bool read_rtc_value() {
-  lastReadTime = rtc.now();
+bool read_rtc_value(byte action) {
+  switch (action) {
+    case ENTERING:
+      enteringTime = rtc.now();
+      break;
+    case LEAVING:
+      leavingTime = rtc.now();
+      break;
+  }
+  return true;
 }
 
 /**
@@ -209,18 +197,19 @@ void read_weight() {
 
 void write_values_to_file() {
   char s_date[20];
-  sprintf(s_date, "%s", lastReadTime.format("Y-m-d h:m:s"));
+  sprintf(s_date, "%s", enteringTime.format("Y-m-d h:m:s"));
   myFile.write(s_date);
   myFile.write(";");
   myFile.write(whos_entering);
-  myFile.write(":");
+  myFile.write(";");
   myFile.write(measured_weight);
+  myFile.write(";");
+  sprintf(s_date, "%s", leavingTime.format("Y-m-d h:m:s"));
+  myFile.write(s_date);
+  myFile.write(";");
+  myFile.write(whos_leaving);
   myFile.write(0x0D);
   myFile.write(0x0A);
-}
-
-void check_elapsed_time() {
-  // TODO: implement it
 }
 
 void open_barrier() {
@@ -257,7 +246,7 @@ bool is_known_card(byte card_id[4]) {
 }
 
 /**
- * Stores the card uid and card_number at the position indicated 
+ * Stores the card uid and card_number at the position indicated
  * positions are from 0 to 199
  */
 void store_card(struct card_block card, byte position) {
@@ -267,4 +256,20 @@ void store_card(struct card_block card, byte position) {
   } else {
     Serial.println("INV_POS");
   }
+}
+
+void start_time_measurement() {
+  timerStarted = rtc.now();
+}
+
+bool check_elapsed_time() {
+  DateTime current = rtc.now();
+  if ((current - timerStarted).totalseconds() >= WAITING_TIME) {
+    return true;
+  }
+  return false;
+}
+
+void answer_rf() {
+  //TODO: implement
 }
