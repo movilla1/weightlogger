@@ -28,7 +28,6 @@ struct card_block {
 File myFile;
 DS3231 rtc;
 MFRC522 mfrc522;
-RF24 radio(7,8); //RF24 Radio on pins 7 & 8
 int sys_state;
 byte successRead;    // Variable integer to keep if we have Successful Read from Reader
 byte storedCard[4];   // Stores an ID read from EEPROM
@@ -37,9 +36,10 @@ byte whos_entering; //stores in ram the card position that's readed
 uint16_t measured_weight; // Stores weight in ram
 DateTime enteringTime;  //last time readed on the RTC
 DateTime timerStarted;
-byte addresses[][6] = {"Node1","Node2","MASTR"};
 bool wait_weight = false;
-
+/* Radio related config */
+byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
+RF24 radio(7, 8); //RF24 Radio on pins 7 & 8
 /**
  * System setup
  */
@@ -101,7 +101,7 @@ void loop() {
       sys_state = READY;
       break;
     case DATA_LINK:
-      answer_rf();
+      rf_protocol_manager();
       break;
     default:
       delay(10); //sleep while not doing anything
@@ -193,7 +193,7 @@ void open_barrier() {
 bool compare_card(byte card_id[4], struct card_block card) {
   bool ret_val = true;
   for (uint8_t i; i < 4; i++) {
-    ret_val &= (card_id[i]==card.card_uid[i]);
+    ret_val &= (card_id[i] == card.card_uid[i]);
   }
   return ret_val;
 }
@@ -226,7 +226,7 @@ void store_card(struct card_block card, byte position) {
   if ( pos < 200) {  //if we are not full capacity
     EEPROM_writeBlock(pos, card); //store the card
   } else {
-    Serial.println("INV_POS");
+    send_by_rf(INVALID);
   }
 }
 

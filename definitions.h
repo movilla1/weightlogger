@@ -31,3 +31,9 @@
 #define LEAVING 2
 #define MAX_EEPROM_POSITION 200 * sizeof(struct card_block)
 #define WAITING_TIME 20 // Mandatory delay in seconds
+
+/**
+ * RF Protocol Constants
+ */
+#define INVALID 1
+#define VALID 4

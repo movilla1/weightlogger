@@ -1,18 +1,5 @@
 // Initialization code for the parts.
 
-void initialize_radio() {
-  radio.begin();                           // Setup and configure rf radio
-  radio.setChannel(1);
-  radio.setPALevel(RF24_PA_MAX);
-  radio.setDataRate(RF24_1MBPS);
-  radio.setAutoAck(1);                     // Ensure autoACK is enabled
-  radio.setRetries(2,15);
-  radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
-  radio.openWritingPipe(addresses[1]);        // Both radios listen on the same pipes by default, but opposite addresses
-  radio.openReadingPipe(1,addresses[0]);      // Open a reading pipe on address 0, pipe 1
-  radio.startListening();
-}
-
 void initialize_rtc() {
   bool exit_init = false;
   uint8_t init_return;
