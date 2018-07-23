@@ -34,12 +34,12 @@ byte successRead;    // Variable integer to keep if we have Successful Read from
 byte storedCard[4];   // Stores an ID read from EEPROM
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte whos_entering; //stores in ram the card position that's readed
-byte whos_leaving; //stores in ram the card position that's readed
 uint16_t measured_weight; // Stores weight in ram
 DateTime enteringTime;  //last time readed on the RTC
-DateTime leavingTime;  //last time readed on the RTC
 DateTime timerStarted;
 byte addresses[][6] = {"Node1","Node2","MASTR"};
+bool wait_weight = false;
+
 /**
  * System setup
  */
@@ -51,12 +51,12 @@ void setup() {
   digitalWrite(LED, 0);
   Serial.begin(4800, SERIAL_8N1); // according to wheight measurement device
   initialize_rtc();
-  sys_state = READY;
   initialize_sd_card();
   initialize_radio();
   myFile = SD.open("datalog.csv", O_READ | O_WRITE | O_CREAT | O_APPEND);
   mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
   mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max); // Max reading distance
+  sys_state = READY;
 }
 
 void loop() {
@@ -75,24 +75,16 @@ void loop() {
       }
     case READ_RFID:
       if (read_rfid_value()) {
-        check_card_and_act(ENTERING); //checks the card and if its valid, it starts the sequence
+        check_card_and_act(); //checks the card and if its valid, it starts the sequence
       }
       break;
     case READ_RTC:
-      read_rtc_value(ENTERING);
+      read_rtc_value();
       sys_state = READ_WEIGHT;
       break;
     case READ_WEIGHT:
       read_weight();
-      sys_state = READ_RFID_2;
-      break;
-    case READ_RFID_2:
-      if (read_rfid_value()) {
-        check_card_and_act(LEAVING);
-      }
-      break;
-    case READ_RTC_2:
-      read_rtc_value(LEAVING);
+      sys_state = WRITE_RECORD;
       break;
     case WRITE_RECORD:
       write_values_to_file();
@@ -160,33 +152,26 @@ void show_error(uint8_t error_code) {
 /**
  * Readed card must be checked agains the known ones
  */
-bool check_card_and_act(byte card_slot) {
+bool check_card_and_act() {
   byte ret = is_known_card(readCard);
-  if (ret && card_slot == 1) {
+  if (ret) {
     sys_state = READ_RTC;
     whos_entering = ret;
-  } else {
-    if (ret && card_slot == 2) {
-      whos_leaving = ret;
-      sys_state = READ_RTC_2;
-    } else {
-      sys_state = ERROR_INVALID;
-    }
-  }
+  } 
   return ret;
 }
 
 /**
  * Read the time and store it in memory
  */
-bool read_rtc_value(byte action) {
-  switch (action) {
-    case ENTERING:
-      enteringTime = rtc.now();
-      break;
-    case LEAVING:
-      leavingTime = rtc.now();
-      break;
+bool read_rtc_value() {
+  uint32_t tmp = 0;
+  if (rtc.isrunning()) {
+    enteringTime = rtc.now();
+  } else {
+    enteringTime = DateTime(tmp);
+    sys_state = ERROR_RTC;
+    return false;
   }
   return true;
 }
@@ -200,20 +185,28 @@ void read_weight() {
 }
 
 void write_values_to_file() {
-  char s_date[20];
-  sprintf(s_date, "%s", enteringTime.format("Y-m-d h:m:s"));
-  myFile.write(s_date);
+  write_timestamp(enteringTime);
   myFile.write(";");
   myFile.write(whos_entering);
   myFile.write(";");
   myFile.write(measured_weight);
-  myFile.write(";");
-  sprintf(s_date, "%s", leavingTime.format("Y-m-d h:m:s"));
-  myFile.write(s_date);
-  myFile.write(";");
-  myFile.write(whos_leaving);
   myFile.write(0x0D);
   myFile.write(0x0A);
+}
+
+void write_timestamp(DateTime stamp) {
+   myFile.print(stamp.year(), DEC);
+   myFile.print('/');
+   myFile.print(stamp.month(), DEC);
+   myFile.print('/');
+   myFile.print(stamp.day(), DEC);
+   myFile.print(" ");
+   myFile.print(stamp.hour(), DEC);
+   myFile.print(':');
+   myFile.print(stamp.minute(), DEC);
+   myFile.print(':');
+   myFile.print(stamp.second(), DEC);
+   myFile.print(" ");
 }
 
 void open_barrier() {
@@ -273,7 +266,49 @@ bool check_elapsed_time() {
   }
   return false;
 }
-
+/**
+ * Answers the RF link data/operations
+ * Protocol v1.0
+ * Sxxxy: replacing xxx for a number from 0 to 200, 
+ *            stores a card into the eeprom With card ID set to Y (Byte coded value from 0 to 255)
+ * D: Dumps the eeprom memory in BYTE FORMAT
+ * R: Card ID readed by the slave reader
+ * W: Start weight measurement transfer (next 7 bytes are from the weight measurement device)
+ * 01234567: Any 7 bytes can be loaded after the WEIGHT command is received.
+ * Exxx: Erase card @ position xxx (0 to 200)
+ * 
+ * answers:
+ * VALID: Card ID is ok
+ * INVAL: Card ID is not allowed.
+  * */
 void answer_rf() {
-  //TODO: implement
+  char data_buffer[7];
+  char remaining[4];
+  byte state = 1;
+  if (radio.available()) {
+    radio.read(data_buffer, 1);
+    
+    switch(data_buffer[0]) {
+      case 'S':
+        //rf_store_card();
+        break;
+      case 'D':
+        //dump_eeprom();
+        break;
+      case 'R':
+        //rf_check_card_and_answer();
+        break;
+      case 'W':
+        //set_weight_read();
+        break;
+      case 'E':
+        //delete_card(remaining);
+        break;
+      default:
+        if (wait_weight) {
+          //set the weight
+        }
+    }
+  }
+  //TODO: Implement protocol handshake
 }

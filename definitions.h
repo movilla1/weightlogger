@@ -8,9 +8,7 @@
 #define ERROR_RTC 5
 #define ERROR_INVALID 7
 #define READ_RFID 8
-#define READ_RFID_2 11
 #define READ_RTC 16
-#define READ_RTC_2 19
 #define READ_WEIGHT 32
 #define OPEN_BARRIER 64
 #define WRITE_RECORD 128
