@@ -25,6 +25,8 @@ void initialize_radio() {
  * D: Dumps the eeprom memory in BYTE FORMAT
  * Bxxxxwwwwwwww: Slave Block, xxxx = Card ID (4 bytes) readed by the slave reader
  *                wwwwwww = 7 bytes weight
+ * Ayymmddhhiiss: Adjust time, YY=year 2 digits, mm=month 00-12, dd=day 01-31, 
+ *                hh=hour 00-23, ii=minutes 00-59, ss=seconds 00-59
  * Ex: Erase card @ position x (x = byte from 0 to 199)
  * 
  * answers:
@@ -32,13 +34,17 @@ void initialize_radio() {
  * I: Card ID is not allowed.
  **/
 void rf_protocol_manager() {
-  char data_buffer[12];
+  char data_buffer[14];
   char tmp[7];
   byte ret;
   if (radio.available()) {
     radio.read(data_buffer, 1);
     
     switch(data_buffer[0]) {
+      case 'A':
+        radio.read(data_buffer,12); //time is 12 characters long;
+        adjust_time(data_buffer);
+        break;
       case 'S':
         radio.read(data_buffer,2);
         rf_store_card(data_buffer);
@@ -71,12 +77,38 @@ void rf_protocol_manager() {
   }
 }
 
-void rf_store_card(char card_data[]) {
-  //TODO: Implement
+void rf_store_card(char *card_data) {
+  bool finish = false;
+  bool timeout = false;
+  int tstart;
+  tstart = millis();
+  struct card_block card;
+  while(!finish || timeout) {
+    if (millis() - tstart > MAX_CARD_WAIT_TIME) {
+      timeout = true;
+    }
+    if (mfrc522.PICC_IsNewCardPresent()) {
+      read_rfid_value();
+      card.card_number = card_data[1];
+      memcpy(card.card_uid, readCard, 4);
+      EEPROM_writeBlock(card_data[0], card);
+      finish = true;
+    }
+  }
 }
 
 void dump_eeprom() {
-  //TODO: Implement
+  //Dump the whole eeprom
+  char buff[16];
+  byte pos = 0;
+  for(int i=0; i < 0x3FF; i++) {
+    buff[pos]=EEPROM.read(i);
+    pos++;
+    if (pos >= sizeof(buff)) {
+      pos = 0;
+      send_by_rf(buff, sizeof(buff));
+    }
+  }
 }
 
 void answer_to_sender(bool opt) {
@@ -86,7 +118,10 @@ void answer_to_sender(bool opt) {
 }
 
 void delete_card(char *card_data) {
-  //TODO: Implement
+  struct card_block card;
+  memset(card.card_uid, 0xff,sizeof(card.card_uid));
+  card.card_number = 255;
+  EEPROM_writeBlock(card_data[0], card); //writing everythign to 255 clears the eeprom block.
 }
 
 uint16_t get_weight_value(char *weight_data) {
@@ -105,4 +140,8 @@ void send_by_rf(char *data, uint8_t length) {
   radio.openWritingPipe(addresses[lastCommFrom]);    // writing to the ELCNM channel
   radio.write(&data, length);
   radio.startListening();
+}
+
+void adjust_time(char *data) {
+  //TODO: Implement
 }
