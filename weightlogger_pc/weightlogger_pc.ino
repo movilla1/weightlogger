@@ -14,7 +14,6 @@ void setup() {
   digitalWrite(LED, 0);
   Serial.begin(28800, SERIAL_8N1);
   initialize_radio();
-  sys_state = READY;
 }
 
 void loop() {
