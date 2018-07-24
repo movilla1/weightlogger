@@ -28,8 +28,7 @@ struct card_block {
 File myFile;
 DS3231 rtc;
 MFRC522 mfrc522;
-int sys_state;
-byte storedCard[4];   // Stores an ID read from EEPROM
+byte sys_state;
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte whos_entering; //stores in ram the card position that's readed
 uint16_t measured_weight; // Stores weight in ram
