@@ -14,14 +14,25 @@ void setup() {
   digitalWrite(LED, 0);
   Serial.begin(28800, SERIAL_8N1);
   initialize_radio();
+  sys_state = READY;
 }
 
 void loop() {
-  if (Serial.available()) {
-    serial_manager();
+  switch (sys_state)
+  {
+    case READY:
+      if (Serial.available()) {
+        sys_state = SERIAL_COMM;
+      }
+      if (radio.available()) {
+        sys_state = RADIO_COMM;
+      }
+      break;
+    case SERIAL_COMM:
+      serial_manager();
+      break;
+    case RADIO_COMM:
+      radio_comm_manager();
+      break;
   }
-  if (radio.available()) {
-    radio_comm_manager();
-  }
-  delay(50); //sleep for 50 milliseconds each time.
 }
