@@ -25,7 +25,7 @@ void initialize_radio() {
  * D: Dumps the eeprom memory in BYTE FORMAT
  * Bxxxxwwwwwwww: Slave Block, xxxx = Card ID (4 bytes) readed by the slave reader
  *                wwwwwww = 7 bytes weight
- * Ayymmddhhiiss: Adjust time, YY=year 2 digits, mm=month 00-12, dd=day 01-31, 
+ * Ayyyy-mm-dd hh:ii:ss : Adjust time, YYYY=year 4 digits, mm=month 00-12, dd=day 01-31, 
  *                hh=hour 00-23, ii=minutes 00-59, ss=seconds 00-59
  * Ex: Erase card @ position x (x = byte from 0 to 199)
  * 
@@ -34,7 +34,7 @@ void initialize_radio() {
  * I: Card ID is not allowed.
  **/
 void rf_protocol_manager() {
-  char data_buffer[14];
+  char data_buffer[20];
   char tmp[7];
   byte ret;
   if (radio.available()) {
@@ -42,7 +42,7 @@ void rf_protocol_manager() {
     
     switch(data_buffer[0]) {
       case 'A':
-        radio.read(data_buffer,12); //time is 12 characters long;
+        radio.read(data_buffer,19); //time is 19 characters long; (e.g.: 2018-07-25 12:03:10)
         adjust_time(data_buffer);
         break;
       case 'S':
@@ -101,7 +101,7 @@ void dump_eeprom() {
   //Dump the whole eeprom
   char buff[16];
   byte pos = 0;
-  for(int i=0; i < 0x3FF; i++) {
+  for(int i=0; i < 0x400; i++) {
     buff[pos]=EEPROM.read(i);
     pos++;
     if (pos >= sizeof(buff)) {
@@ -125,7 +125,15 @@ void delete_card(char *card_data) {
 }
 
 uint16_t get_weight_value(char *weight_data) {
-  //TODO: Implement
+  String str;
+  uint16_t weight;
+  if (weight_data[6] == 0x1B || weight_data[6] == 0x1C) {
+    for(byte i=0; i < 6; i++) {
+      str += (char) weight_data[i];
+    }
+    weight = str.toInt();
+  }
+  return weight;
 }
 
 void send_by_rf(byte option) {
@@ -143,5 +151,5 @@ void send_by_rf(char *data, uint8_t length) {
 }
 
 void adjust_time(char *data) {
-  //TODO: Implement
+  rtc.adjust(DateTime(data));
 }

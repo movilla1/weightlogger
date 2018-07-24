@@ -156,8 +156,29 @@ bool read_rtc_value() {
  * Read the weight and store it in memory
  */
 void read_weight() {
-  // TODO: properly implement
-  measured_weight = 50;
+  char weight_data[7];
+  String tmp;
+  bool timeout = false;
+  long start;
+  start = millis();
+  while(!Serial.available() && !timeout) {
+    if (millis()-start > MAX_WEIGHT_WAIT_TIME) {
+      timeout = true;
+    }
+  }
+  if (Serial.available() && !timeout) {
+    Serial.readBytes(weight_data, 7);
+    for (byte i=0; i < 6; i++) {
+      tmp += weight_data[i];
+    }
+    if (weight_data[6] == 0x1B || weight_data[6]==0x1C) {
+      measured_weight = tmp.toInt();
+    } else {
+      measured_weight = -1;
+    }
+  } else {
+    measured_weight = -1;
+  }
 }
 
 void write_values_to_file() {
