@@ -29,14 +29,13 @@ File myFile;
 DS3231 rtc;
 MFRC522 mfrc522;
 int sys_state;
-byte successRead;    // Variable integer to keep if we have Successful Read from Reader
 byte storedCard[4];   // Stores an ID read from EEPROM
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte whos_entering; //stores in ram the card position that's readed
 uint16_t measured_weight; // Stores weight in ram
 DateTime enteringTime;  //last time readed on the RTC
 DateTime timerStarted;
-bool wait_weight = false;
+
 /* Radio related config */
 byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
 RF24 radio(7, 8); //RF24 Radio on pins 7 & 8

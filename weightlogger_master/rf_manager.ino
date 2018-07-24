@@ -11,8 +11,8 @@ void initialize_radio() {
   radio.setAutoAck(1);                     // Ensure autoACK is enabled
   radio.setRetries(2,15);
   radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
-  radio.openReadingPipe(1,addresses[0]);      // Open a reading pipe on address 0, pipe 1
-  radio.openReadingPipe(2,addresses[1]);      // Open a reading pipe on address 1, pipe 2
+  radio.openReadingPipe(1,addresses[1]);      // Open a reading pipe on address 0, pipe 1
+  radio.openReadingPipe(2,addresses[2]);      // Open a reading pipe on address 1, pipe 2
   radio.startListening();
   lastCommFrom = 0; //start with no lastComms
 }
@@ -138,14 +138,14 @@ uint16_t get_weight_value(char *weight_data) {
 
 void send_by_rf(byte option) {
   radio.stopListening(); //start transmit mode
-  radio.openWritingPipe(addresses[lastCommFrom]);    // writing to the ELCNM channel
+  radio.openWritingPipe(addresses[0]);    // writing to the ELCN1 channel
   radio.write(&option, 1);
   radio.startListening();
 }
 
 void send_by_rf(char *data, uint8_t length) {
   radio.stopListening(); //start transmit mode
-  radio.openWritingPipe(addresses[lastCommFrom]);    // writing to the ELCNM channel
+  radio.openWritingPipe(addresses[0]);    // writing to the ELCN1 channel
   radio.write(&data, length);
   radio.startListening();
 }
