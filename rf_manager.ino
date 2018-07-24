@@ -11,10 +11,10 @@ void initialize_radio() {
   radio.setAutoAck(1);                     // Ensure autoACK is enabled
   radio.setRetries(2,15);
   radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
-  radio.openWritingPipe(addresses[2]);        // Both radios listen on the same pipes by default, but opposite addresses
   radio.openReadingPipe(1,addresses[0]);      // Open a reading pipe on address 0, pipe 1
-  radio.openReadingPipe(2,addresses[1]);      // Open a reading pipe on address 0, pipe 1
+  radio.openReadingPipe(2,addresses[1]);      // Open a reading pipe on address 1, pipe 2
   radio.startListening();
+  lastCommFrom = 0; //start with no lastComms
 }
 
 /**
@@ -53,7 +53,7 @@ void rf_protocol_manager() {
         answer_to_sender(ret);
         if (ret) { //valid card, store the data
           memcpy(tmp, data_buffer + 4, 7); //get the 7 remaining bytes for the weight
-          measured_weigth = get_weight_value(tmp);
+          measured_weight = get_weight_value(tmp);
           enteringTime = rtc.now();
           write_values_to_file();
           sys_state = READY;
@@ -93,6 +93,16 @@ uint16_t get_weight_value(char *weight_data) {
   //TODO: Implement
 }
 
-void send_by_rf(byte OPTION) {
-  //TODO: Implement
+void send_by_rf(byte option) {
+  radio.stopListening(); //start transmit mode
+  radio.openWritingPipe(addresses[lastCommFrom]);    // writing to the ELCNM channel
+  radio.write(&option, 1);
+  radio.startListening();
+}
+
+void send_by_rf(char *data, uint8_t length) {
+  radio.stopListening(); //start transmit mode
+  radio.openWritingPipe(addresses[lastCommFrom]);    // writing to the ELCNM channel
+  radio.write(&data, length);
+  radio.startListening();
 }

@@ -40,6 +40,7 @@ bool wait_weight = false;
 /* Radio related config */
 byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
 RF24 radio(7, 8); //RF24 Radio on pins 7 & 8
+byte lastCommFrom;
 /**
  * System setup
  */
@@ -70,7 +71,7 @@ void loop() {
       if (mfrc522.PICC_IsNewCardPresent()) {
         sys_state = READ_RFID;
       }
-      if (radio.available()){
+      if (radio.available(&lastCommFrom)){
         sys_state = DATA_LINK;
       }
     case READ_RFID:
