@@ -61,7 +61,7 @@ void rf_protocol_manager() {
           memcpy(tmp, data_buffer + 4, 7); //get the 7 remaining bytes for the weight
           measured_weight = get_weight_value(tmp);
           enteringTime = rtc.now();
-          write_values_to_file();
+          write_values_to_file('I');
           sys_state = READY;
         }
         break;

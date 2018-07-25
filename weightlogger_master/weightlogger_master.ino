@@ -86,7 +86,7 @@ void loop() {
       sys_state = WRITE_RECORD;
       break;
     case WRITE_RECORD:
-      write_values_to_file();
+      write_values_to_file('O');
       timerStarted = rtc.now();
       sys_state = TIMED_WAIT;
       break;
@@ -179,12 +179,14 @@ void read_weight() {
   }
 }
 
-void write_values_to_file() {
+void write_values_to_file(char action) {
   write_timestamp(enteringTime);
   myFile.write(";");
   myFile.write(whos_entering);
   myFile.write(";");
   myFile.write(measured_weight);
+  myFile.write(";");
+  myFile.write(action);
   myFile.write(0x0D);
   myFile.write(0x0A);
 }

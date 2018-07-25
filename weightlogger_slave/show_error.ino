@@ -5,14 +5,12 @@
 void show_error(uint8_t error_code) {
   uint8_t blinks;
   switch(error_code) {
-    case ERROR_SD:
+    case ERROR_WEIGHT:
       blinks = 2;
       break;
     case ERROR_RFID:
       blinks = 3;
       break;
-    case ERROR_RTC:
-      blinks = 4;
     default:
       blinks = 1;
       break;

@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:nano",
     "configuration": "cpu=atmega328",
-    "sketch": "weightlogger_pc/weightlogger_pc.ino"
+    "sketch": "weightlogger_slave/weightlogger_slave.ino"
 }
