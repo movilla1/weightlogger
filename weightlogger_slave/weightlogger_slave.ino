@@ -9,6 +9,7 @@ MFRC522 mfrc522;
 RF24 radio(7, 8); //RF24 Radio on pins 7 & 8
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
+byte whos_entering; //stores in ram the card position that's readed
 byte sys_state;
 uint16_t measured_weight;
 
@@ -26,8 +27,9 @@ void setup() {
 
 void loop() {
   switch(sys_state) {
-    case ERROR_SD:
     case ERROR_RFID:
+    case ERROR_WEIGHT:
+    case ERROR_INVALID:
       show_error(sys_state);
       break;
     case READY:
@@ -49,6 +51,9 @@ void loop() {
     case OPEN_BARRIER:
       open_barrier();
       sys_state = SEND_DATA_OUT;
+      break;
+    case DENIED_ACCESS:
+      show_access_denied();
       break;
     case SEND_DATA_OUT:
       send_card_data_to_master();
@@ -118,4 +123,20 @@ void read_weight() {
   } else {
     measured_weight = -1;
   }
+}
+
+void show_access_denied() {
+  //TODO: Implement
+}
+
+bool is_known_card(byte card_id[4]) {
+  //TODO: Implement
+}
+
+void open_barrier() {
+  //TODO: Implement
+}
+
+void send_card_data_to_master() {
+  //TODO: Implement
 }

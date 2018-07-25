@@ -11,6 +11,7 @@
 #define READ_RFID 8
 #define READ_WEIGHT 16
 #define OPEN_BARRIER 25
+#define DENIED_ACCESS 29
 #define DATA_LINK 32
 #define TIMED_WAIT 64
 #define SEND_DATA_OUT 128

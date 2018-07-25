@@ -11,6 +11,9 @@ void show_error(uint8_t error_code) {
     case ERROR_RFID:
       blinks = 3;
       break;
+    case ERROR_INVALID:
+      blinks = 4;
+      break;
     default:
       blinks = 1;
       break;
