@@ -2,7 +2,7 @@
 #include <Wire.h>
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
 #include <RF24.h>
-
+#include "rf_protocol.h"
 #include "definitions.h"
 
 MFRC522 mfrc522;
@@ -12,6 +12,7 @@ byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
 byte whos_entering; //stores in ram the card position that's readed
 byte sys_state;
 uint16_t measured_weight;
+ElcanProto protocol_manager; 
 
 void setup() {
   Wire.begin();
