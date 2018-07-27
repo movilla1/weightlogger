@@ -14,7 +14,7 @@ void initialize_radio() {
   radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
   radio.openReadingPipe(1,addresses[2]);      // Open a reading pipe on address 1, pipe 2
   radio.startListening();
-  protocol_manager.begin(addresses[1], 5, radio);
+  protocol_manager.begin(addresses[1], 5, &radio);
 }
 
 void radio_comm_manager() {
@@ -27,7 +27,7 @@ void radio_comm_manager() {
       Serial.println("Valid Data Received");
       break;
     case INVALID:
-      Seria.println("Invalid Data");
+      Serial.println("Invalid Data");
       break;
     case ACK:
       Serial.println("Command OK");
@@ -43,7 +43,9 @@ void radio_comm_manager() {
       break;
     case DUMP:
       protocol_manager.getPacketPayload(data);
-      Serial.print(data);
+      for(byte i=0; i < PACKET_PAYLOAD_SIZE; i++) {
+        Serial.write(data[i]);
+      }
       break;
   }
 }
