@@ -8,7 +8,7 @@
 byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
 RF24 radio(7, 8); //RF24 Radio on pins 7 & 8
 byte sys_state;
-ElcanProto protocol_manager;
+ElcanProto protocolManager;
 byte attemps;
 void setup() {
   Wire.begin();

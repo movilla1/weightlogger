@@ -64,7 +64,7 @@ void rf_protocol_manager()
       if (ret)
       {                                  //valid card, store the data
         memcpy(tmp, data_buffer + 4, 7); //get the 7 remaining bytes for the weight
-        measured_weight = get_weight_value(tmp);
+        measuredWeight = get_weight_value(tmp);
         enteringTime = rtc.now();
         write_values_to_file('I');
         sys_state = READY;
@@ -72,7 +72,7 @@ void rf_protocol_manager()
       break;
     case 'W':
       radio.read(data_buffer, 7); //get all the 7 bytes for weight
-      measured_weight = get_weight_value(data_buffer);
+      measuredWeight = get_weight_value(data_buffer);
       break;
     case 'E':
       radio.read(data_buffer, 3);

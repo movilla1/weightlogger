@@ -15,7 +15,7 @@ void initialize_radio()
   radio.setCRCLength(RF24_CRC_8);         // Use 8-bit CRC for performance
   radio.openReadingPipe(1, addresses[0]); // Open a reading pipe on address 0, pipe 1
   radio.startListening();
-  protocol_manager.begin(addresses[1], 5, &radio);
+  protocolManager.begin(addresses[1], 5, &radio);
 }
 
 /**
@@ -41,7 +41,7 @@ void rf_protocol_manager()
   byte ret;
   if (radio.available())
   {
-    command = protocol_manager.getPacket();
+    command = protocolManager.getPacket();
 
     switch (command)
     {
@@ -52,7 +52,7 @@ void rf_protocol_manager()
       sys_state = DENIED_ACCESS;
       break;
     case NACK:
-      protocol_manager.resendLastPacket();
+      protocolManager.resendLastPacket();
       break;
     }
   }
@@ -62,10 +62,10 @@ void answer_to_sender(bool opt)
 {
   byte tmp=0;
   if (opt) {
-    protocol_manager.fillPacket("VA", &tmp, 0);
-    protocol_manager.sendPacket();
+    protocolManager.fillPacket("VA", &tmp, 0);
+    protocolManager.sendPacket();
   } else {
-    protocol_manager.fillPacket("IN", &tmp, 0);
-    protocol_manager.sendPacket();
+    protocolManager.fillPacket("IN", &tmp, 0);
+    protocolManager.sendPacket();
   }
 }

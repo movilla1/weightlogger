@@ -11,18 +11,22 @@ byte readCard[4];   // Stores scanned ID read from RFID Module
 byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
 byte whos_entering; //stores in ram the card position that's readed
 byte sys_state;
-uint16_t measured_weight;
-ElcanProto protocol_manager; 
+uint16_t measuredWeight;
+ElcanProto protocolManager; 
 
 void setup() {
   Wire.begin();
   pinMode(LED, OUTPUT);
+  pinMode(CLOSE_BARRIER, OUTPUT);
+  pinMode(OPEN_BARRIER, OUTPUT);
   digitalWrite(LED, 0);
+  digitalWrite(CLOSE_BARRIER, 0);
+  digitalWrite(OPEN_BARRIER, 0);
   Serial.begin(4800, SERIAL_8N1); // according to wheight measurement device
   initialize_radio();
   mfrc522.PCD_Init();                             // Initialize MFRC522 Hardware
   mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max); // Max reading distance
-  measured_weight = -1;
+  measuredWeight = -1;
   sys_state = READY;
 }
 
@@ -117,17 +121,18 @@ void read_weight() {
       tmp += weight_data[i];
     }
     if (weight_data[6] == 0x1B || weight_data[6]==0x1C) {
-      measured_weight = tmp.toInt();
+      measuredWeight = tmp.toInt();
     } else {
-      measured_weight = -1;
+      measuredWeight = -1;
     }
   } else {
-    measured_weight = -1;
+    measuredWeight = -1;
   }
 }
 
 void show_access_denied() {
-  //TODO: Implement
+  digitalWrite(CLOSE_BARRIER, HIGH);
+  digitalWrite(OPEN_BARRIER, LOW);
 }
 
 bool is_known_card(byte card_id[4]) {
@@ -135,7 +140,8 @@ bool is_known_card(byte card_id[4]) {
 }
 
 void open_barrier() {
-  //TODO: Implement
+  digitalWrite(OPEN_BARRIER, HIGH);
+  digitalWrite(CLOSE_BARRIER, LOW);
 }
 
 void send_card_data_to_master() {

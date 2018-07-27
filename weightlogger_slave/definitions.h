@@ -20,6 +20,8 @@
  * Ports used
  */
 #define LED 13
+#define CLOSE_BARRIER 3
+#define OPEN_BARRIER 4
 
 /**
  * System Constants

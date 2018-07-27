@@ -50,6 +50,6 @@ void rf_send_delete_card(byte *card) {
 }
 
 void send_rf_command(const char command[], byte *data, byte len) {
-  protocol_manager.fillPacket(command, data, len);
-  protocol_manager.sendPacket();
+  protocolManager.fillPacket(command, data, len);
+  protocolManager.sendPacket();
 }

@@ -14,14 +14,14 @@ void initialize_radio() {
   radio.setCRCLength(RF24_CRC_8);          // Use 8-bit CRC for performance
   radio.openReadingPipe(1,addresses[2]);      // Open a reading pipe on address 1, pipe 2
   radio.startListening();
-  protocol_manager.begin(addresses[1], 5, &radio);
+  protocolManager.begin(addresses[1], 5, &radio);
 }
 
 void radio_comm_manager() {
   byte cmd;
   byte data[PACKET_PAYLOAD_SIZE];
 
-  cmd = protocol_manager.getPacket();
+  cmd = protocolManager.getPacket();
   switch (cmd) {
     case VALID:
       Serial.println("Valid Data Received");
@@ -35,14 +35,14 @@ void radio_comm_manager() {
       break;
     case NACK:
       if (attemps < 5) {
-        protocol_manager.resendLastPacket();
+        protocolManager.resendLastPacket();
         attemps += 1;
       } else {
         Serial.println("Error receiving data");
       }
       break;
     case DUMP:
-      protocol_manager.getPacketPayload(data);
+      protocolManager.getPacketPayload(data);
       for(byte i=0; i < PACKET_PAYLOAD_SIZE; i++) {
         Serial.write(data[i]);
       }

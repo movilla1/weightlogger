@@ -31,10 +31,10 @@ MFRC522 mfrc522;
 byte sys_state;
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte whos_entering; //stores in ram the card position that's readed
-uint16_t measured_weight; // Stores weight in ram
+uint16_t measuredWeight; // Stores weight in ram
 DateTime enteringTime;  //last time readed on the RTC
 DateTime timerStarted;
-
+ElcanProto protocolManager;
 /* Radio related config */
 byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
 RF24 radio(7, 8); //RF24 Radio on pins 7 & 8
@@ -170,12 +170,12 @@ void read_weight() {
       tmp += weight_data[i];
     }
     if (weight_data[6] == 0x1B || weight_data[6]==0x1C) {
-      measured_weight = tmp.toInt();
+      measuredWeight = tmp.toInt();
     } else {
-      measured_weight = -1;
+      measuredWeight = -1;
     }
   } else {
-    measured_weight = -1;
+    measuredWeight = -1;
   }
 }
 
@@ -184,7 +184,7 @@ void write_values_to_file(char action) {
   myFile.write(";");
   myFile.write(whos_entering);
   myFile.write(";");
-  myFile.write(measured_weight);
+  myFile.write(measuredWeight);
   myFile.write(";");
   myFile.write(action);
   myFile.write(0x0D);
