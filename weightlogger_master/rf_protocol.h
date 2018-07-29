@@ -62,7 +62,7 @@ class ElcanProto
     {DUMP_EEPROM, DUMP_SDCARD}, {ERASE_CARD, 0}, {INVALID, 0}, {0, 0} };
 
   public:
-    byte getPacket();
+    byte getPacket(uint8_t* pipe_num);
     void sendPacket();
     void fillPacket(byte command[], byte data[], uint8_t length);
     void fillPacket(const char command[], byte data[], uint8_t length);

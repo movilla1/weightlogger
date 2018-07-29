@@ -15,15 +15,6 @@ struct card_block {
 };
 
 /**
- * SD card attached to SPI bus as follows:
- * MOSI - pin 11
- * MISO - pin 12
- * CLK - pin 13
- * CS - pin 4 (for MKRZero SD: SDCARD_SS_PIN)
- */
-
-
-/**
  * Global Variables
  */
 File myFile;
@@ -39,7 +30,7 @@ ElcanProto protocolManager;
 
 /* Radio related config */
 byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
-RF24 radio(7, 8); //RF24 Radio on pins 7 & 8
+RF24 radio(RADIO_PIN_A, RADIO_PIN_B); //RF24 Radio on pins 7 & 8
 byte lastCommFrom;
 /**
  * System setup

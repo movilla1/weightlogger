@@ -37,3 +37,12 @@
  * RF Protocol Constants
  */
 #define MAX_CARD_WAIT_TIME 10000 //10 seconds
+#define RADIO_PIN_A 7
+#define RADIO_PIN_B 8
+/**
+ * SD card attached to SPI bus as follows:
+ * MOSI - pin 11
+ * MISO - pin 12
+ * CLK - pin 13
+ * CS - pin 4 (for MKRZero SD: SDCARD_SS_PIN)
+ */

@@ -145,7 +145,7 @@ void ElcanProto::resendLastPacket() {
 
 void ElcanProto::rfSendPacket() {
   this->radio->stopListening();                //start transmit mode
-  this->radio->openWritingPipe(writeAddress); // writing to the ELCN2 channel
+  this->radio->openWritingPipe(this->writeAddress); // writing to the ELCN2 channel
   this->radio->write(&data_packet, RADIO_PACKET_SIZE);
   this->radio->startListening();
 }

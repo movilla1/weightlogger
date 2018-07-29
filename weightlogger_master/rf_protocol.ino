@@ -13,7 +13,7 @@ void ElcanProto::begin(byte *wrAddress, uint8_t maxRetries, RF24 *radio) {
   clearPacket();
 }
 
-byte ElcanProto::getPacket()
+byte ElcanProto::getPacket(uint8_t* pipe_num)
 {
   byte buffer[RADIO_PACKET_SIZE];
   byte count = 0;
@@ -22,7 +22,7 @@ byte ElcanProto::getPacket()
   this->startActionTime = millis();
   while (!finish)
   {
-    if (this->radio->available() && count < RADIO_PACKET_SIZE && !finish)
+    if (this->radio->available(pipe_num) && count < RADIO_PACKET_SIZE && !finish)
     {
       this->radio->read(&buffer[count], 1);
       count++;
@@ -145,7 +145,7 @@ void ElcanProto::resendLastPacket() {
 
 void ElcanProto::rfSendPacket() {
   this->radio->stopListening();                //start transmit mode
-  this->radio->openWritingPipe(writeAddress); // writing to the ELCN2 channel
+  this->radio->openWritingPipe(this->writeAddress); // writing to the ELCN2 channel
   this->radio->write(&data_packet, RADIO_PACKET_SIZE);
   this->radio->startListening();
 }

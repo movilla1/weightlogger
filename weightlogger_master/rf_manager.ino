@@ -41,9 +41,9 @@ void rf_protocol_manager()
   byte data_buffer[PACKET_PAYLOAD_SIZE];
   byte cmd, tmp[7];
   byte ret;
-  if (radio.available())
+  if (radio.available(&lastCommFrom))
   {
-    cmd = protocolManager.getPacket();
+    cmd = protocolManager.getPacket(&lastCommFrom);
     switch (cmd)
     {
     case TIME_ADJUST:
