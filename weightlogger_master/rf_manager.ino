@@ -184,5 +184,7 @@ void dumpSDCard() {
       protocolManager.sendPacket();
     }
     myFile.close();
+  } else {
+    protocolManager.sendNack();
   }
 }
