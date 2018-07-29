@@ -7,6 +7,7 @@
 
 #include "eepromblock.h"
 #include "definitions.h"
+#include "rf_protocol.h"
 
 struct card_block {
   byte card_uid[4];
@@ -35,6 +36,7 @@ uint16_t measuredWeight; // Stores weight in ram
 DateTime enteringTime;  //last time readed on the RTC
 DateTime timerStarted;
 ElcanProto protocolManager;
+
 /* Radio related config */
 byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
 RF24 radio(7, 8); //RF24 Radio on pins 7 & 8
@@ -248,7 +250,7 @@ void store_card(struct card_block card, byte position) {
   if ( pos < 200) {  //if we are not full capacity
     EEPROM_writeBlock(pos, card); //store the card
   } else {
-    send_by_rf(INVALID);
+    answer_to_sender(false);
   }
 }
 

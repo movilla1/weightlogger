@@ -19,7 +19,8 @@
 #define NACK 4  // "NA"
 #define TIME_ADJUST 8  // "TA"
 #define STORE_CARD 16 // "SC"
-#define DUMP 32   // "DU"
+#define DUMP_EEPROM 32   // "DU"
+#define DUMP_SDCARD 40 // 'DC' Dump Card
 #define SLAVE_BLOCK 64  // "SB"
 #define ERASE_CARD 128  // "EC"
 #define INVALID 255   // "IN"
@@ -69,13 +70,13 @@ class ElcanProto
     void begin(byte writeAddress[], uint8_t max_retries, RF24 *radio);
     void resendLastPacket();
     bool getPacketPayload(byte*);
+    void sendNack();
     ElcanProto();
 
   private:
     void clearPacket();
     bool verifyChecksum();
     void sendAck();
-    void sendNack();
     byte parseCommand();
     void rfSendPacket();
 };

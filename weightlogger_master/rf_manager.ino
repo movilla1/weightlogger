@@ -2,6 +2,7 @@
  * Radio initialization
  * 
  **/
+#include "rf_protocol.h"
 
 void initialize_radio()
 {
@@ -16,6 +17,7 @@ void initialize_radio()
   radio.openReadingPipe(2, addresses[2]); // Open a reading pipe on address 1, pipe 2
   radio.startListening();
   lastCommFrom = 0; //start with no lastComms
+  protocolManager.begin(addresses[0], 5, &radio);
 }
 
 /**
@@ -36,28 +38,27 @@ void initialize_radio()
  **/
 void rf_protocol_manager()
 {
-  char data_buffer[20];
-  char tmp[7];
+  byte data_buffer[PACKET_PAYLOAD_SIZE];
+  byte cmd, tmp[7];
   byte ret;
   if (radio.available())
   {
-    radio.read(data_buffer, 1);
-
-    switch (data_buffer[0])
+    cmd = protocolManager.getPacket();
+    switch (cmd)
     {
-    case 'A':
-      radio.read(data_buffer, 19); //time is 19 characters long; (e.g.: 2018-07-25 12:03:10)
+    case TIME_ADJUST:
+      protocolManager.getPacketPayload(data_buffer); //time is 19 characters long; (e.g.: 2018-07-25 12:03:10)
       adjust_time(data_buffer);
       break;
-    case 'S':
-      radio.read(data_buffer, 2);
+    case STORE_CARD:
+      protocolManager.getPacketPayload(data_buffer);
       rf_store_card(data_buffer);
       break;
-    case 'D':
+    case DUMP:
       dump_eeprom();
       break;
-    case 'B':
-      radio.read(data_buffer, 11);
+    case SLAVE_BLOCK:
+      protocolManager.getPacketPayload(data_buffer);
       memcpy(readCard, data_buffer, 4);
       ret = is_known_card(readCard);
       answer_to_sender(ret);
@@ -70,19 +71,18 @@ void rf_protocol_manager()
         sys_state = READY;
       }
       break;
-    case 'W':
-      radio.read(data_buffer, 7); //get all the 7 bytes for weight
-      measuredWeight = get_weight_value(data_buffer);
-      break;
-    case 'E':
-      radio.read(data_buffer, 3);
+    case ERASE_CARD:
+      protocolManager.getPacketPayload(data_buffer);
       delete_card(data_buffer);
+      break;
+    default:
+      protocolManager.sendNack();
       break;
     }
   }
 }
 
-void rf_store_card(char *card_data)
+void rf_store_card(byte *card_data)
 {
   bool finish = false;
   bool timeout = false;
@@ -109,7 +109,8 @@ void rf_store_card(char *card_data)
 void dump_eeprom()
 {
   //Dump the whole eeprom
-  char buff[16];
+  byte buff[PACKET_PAYLOAD_SIZE];
+  byte cmd[2]  = {'D','U'};
   byte pos = 0;
   for (int i = 0; i < 0x400; i++)
   {
@@ -118,27 +119,30 @@ void dump_eeprom()
     if (pos >= sizeof(buff))
     {
       pos = 0;
-      send_by_rf(buff, sizeof(buff));
+      protocolManager.fillPacket(cmd,buff, PACKET_PAYLOAD_SIZE);
+      protocolManager.sendPacket();
     }
   }
 }
 
 void answer_to_sender(bool opt)
 {
-  byte ret;
-  ret = opt ? VALID : INVALID;
-  send_by_rf(ret);
+  byte command[2][2] = { {'V','A'}, {'I','N'}};
+  byte tmp;
+  byte pos = 0;
+  pos = opt ? 0 : 1;
+  send_by_rf(command[pos], &tmp, 0);
 }
 
-void delete_card(char *card_data)
+void delete_card(byte *card_data)
 {
   struct card_block card;
   memset(card.card_uid, 0xff, sizeof(card.card_uid));
-  card.card_number = 255;
+  card.card_number = 0xff;
   EEPROM_writeBlock(card_data[0], card); //writing everythign to 255 clears the eeprom block.
 }
 
-uint16_t get_weight_value(char *weight_data)
+uint16_t get_weight_value(byte *weight_data)
 {
   String str;
   uint16_t weight;
@@ -153,26 +157,17 @@ uint16_t get_weight_value(char *weight_data)
   return weight;
 }
 
-void send_by_rf(byte option)
+void send_by_rf(byte *command, byte *data, uint8_t length)
 {
-  byte tmp[2];
-  tmp[0] = option;
-  tmp[1] = '\n';
-  radio.stopListening();               //start transmit mode
-  radio.openWritingPipe(addresses[0]); // writing to the ELCN1 channel
-  radio.write(tmp, 2);
-  radio.startListening();
+  protocolManager.fillPacket(command, data, length);
+  protocolManager.sendPacket();
 }
 
-void send_by_rf(char *data, uint8_t length)
+void adjust_time(byte *data)
 {
-  radio.stopListening();               //start transmit mode
-  radio.openWritingPipe(addresses[0]); // writing to the ELCN1 channel
-  radio.write(&data, length);
-  radio.startListening();
+  rtc.adjust(DateTime((char *)&data));
 }
 
-void adjust_time(char *data)
-{
-  rtc.adjust(DateTime(data));
+void sdCardDump() {
+  
 }
