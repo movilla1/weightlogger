@@ -162,7 +162,7 @@ byte ElcanProto::parseCommand()
     { 'K', '\0' },
     { 'A', '\0' },
     { 'C', 'B' }, // SC / SB
-    { 'U', '\0' },
+    { 'U', 'C' }, // DU / DC
     { 'C', '\0' },
     { 'N', '\0' }
   };

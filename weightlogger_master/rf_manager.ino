@@ -54,7 +54,7 @@ void rf_protocol_manager()
       protocolManager.getPacketPayload(data_buffer);
       rf_store_card(data_buffer);
       break;
-    case DUMP:
+    case DUMP_EEPROM:
       dump_eeprom();
       break;
     case SLAVE_BLOCK:
@@ -74,6 +74,9 @@ void rf_protocol_manager()
     case ERASE_CARD:
       protocolManager.getPacketPayload(data_buffer);
       delete_card(data_buffer);
+      break;
+    case DUMP_SDCARD:
+      dumpSDCard();
       break;
     default:
       protocolManager.sendNack();
@@ -168,6 +171,18 @@ void adjust_time(byte *data)
   rtc.adjust(DateTime((char *)&data));
 }
 
-void sdCardDump() {
-  
+void dumpSDCard() {
+  File myFile;
+  byte buffer[PACKET_PAYLOAD_SIZE];
+  byte cmd[2] = {'D','C'};
+  byte count;
+  myFile = SD.open("datalog.csv", O_READ);
+  if (myFile) {
+    while(myFile.available()){
+      count = myFile.read(buffer, PACKET_PAYLOAD_SIZE);
+      protocolManager.fillPacket(cmd, buffer, count);
+      protocolManager.sendPacket();
+    }
+    myFile.close();
+  }
 }

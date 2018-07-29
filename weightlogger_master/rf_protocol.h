@@ -59,7 +59,7 @@ class ElcanProto
 
   const byte protocol_commands[9][2] = {
     {NACK, NOP}, {VALID, 0}, {ACK, 0}, {TIME_ADJUST, 0}, {STORE_CARD, SLAVE_BLOCK},
-    {DUMP, 0}, {ERASE_CARD, 0}, {INVALID, 0}, {0, 0} };
+    {DUMP_EEPROM, DUMP_SDCARD}, {ERASE_CARD, 0}, {INVALID, 0}, {0, 0} };
 
   public:
     byte getPacket();
