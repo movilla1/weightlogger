@@ -6,7 +6,7 @@ ElcanProto::ElcanProto() {
 }
 
 void ElcanProto::begin(byte *wrAddress, uint8_t maxRetries, RF24 *radio) {
-  memcpy(this->writeAddress, wrAddress, 5);
+  memcpy(this->addresses, wrAddress, 5);
   this->max_retries = maxRetries;
   this->protocolError = false;
   this->radio = radio;
@@ -34,19 +34,19 @@ byte ElcanProto::getPacket(uint8_t* pipe_num)
         memcpy(&this->data_packet, buffer, RADIO_PACKET_SIZE); //transfer to the packet data structure
         if (this->verifyChecksum())
         {
-          this->sendAck();
+          this->sendAck(pipe_num);
           command = this->parseCommand();
           finish = true;
         }
         else
         {
-          this->sendNack();
+          this->sendNack(pipe_num);
           finish = true;
         }
       } else {
         shouldTimeout = (startActionTime - millis()) > MAX_PACKET_WAIT;
         if (shouldTimeout) {
-          this->sendNack();
+          this->sendNack(pipe_num);
           finish = true;
           this->protocolError = true;
         }
@@ -60,25 +60,25 @@ bool ElcanProto::getPacketPayload(byte data[]) {
   memcpy(data, this->data_packet.payload, PACKET_PAYLOAD_SIZE);
 }
 
-void ElcanProto::sendAck()
+void ElcanProto::sendAck(uint8_t* pipe_num)
 {
   this->clearPacket();
   this->data_packet.command[0]='A';
   this->data_packet.command[1]='K';
   this->data_packet.sequence = 0;
-  this->sendPacket();
+  this->sendPacket(pipe_num);
 }
 
 void ElcanProto::clearPacket() {
   memset(&this->data_packet, 0, sizeof(this->data_packet));
 }
 
-void ElcanProto::sendNack()
+void ElcanProto::sendNack(uint8_t* pipe_num)
 {
   this->clearPacket();
   this->data_packet.command[0]='N';
   this->data_packet.command[1]='A';
-  this->sendPacket();
+  this->sendPacket(pipe_num);
 }
 
 byte ElcanProto::calculateChecksum(byte *data, byte len)
@@ -126,26 +126,28 @@ void ElcanProto::fillPacket(const char command[], byte data[], uint8_t length) {
   memcpy(this->data_packet.payload, data, length);
 }
 
-void ElcanProto::sendPacket()
+void ElcanProto::sendPacket(uint8_t* pipe_num)
 {
   byte tmp[RADIO_PACKET_SIZE];
   memcpy(tmp, &this->data_packet, 23);
   this->data_packet.checksum = this->calculateChecksum(tmp, 23);
-  this->rfSendPacket();
+  this->rfSendPacket(pipe_num);
 }
 
-void ElcanProto::resendLastPacket() {
+void ElcanProto::resendLastPacket(uint8_t* pipe_num) {
   this->data_packet.sequence += 1;
   if (data_packet.sequence <= MAX_PACKETS_PER_COMMAND) {
-    this->rfSendPacket();
+    this->rfSendPacket(pipe_num);
   } else {
     this->protocolError = true;
   }
 }
 
-void ElcanProto::rfSendPacket() {
+void ElcanProto::rfSendPacket(uint8_t *pipe_num) {
+  byte tmp;
+  tmp = *pipe_num;
   this->radio->stopListening();                //start transmit mode
-  this->radio->openWritingPipe(this->writeAddress); // writing to the ELCN2 channel
+  this->radio->openWritingPipe(this->addresses[tmp]); // writing to the channel that asked.
   this->radio->write(&data_packet, RADIO_PACKET_SIZE);
   this->radio->startListening();
 }

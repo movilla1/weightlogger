@@ -3,6 +3,7 @@
  * 
  **/
 #include "rf_protocol.h"
+#include <Arduino.h>
 
 void initialize_radio()
 {
@@ -76,10 +77,10 @@ void rf_protocol_manager()
       delete_card(data_buffer);
       break;
     case DUMP_SDCARD:
-      dumpSDCard();
+      dumpSDCard(&lastCommFrom);
       break;
     default:
-      protocolManager.sendNack();
+      protocolManager.sendNack(&lastCommFrom);
       break;
     }
   }
@@ -123,7 +124,7 @@ void dump_eeprom()
     {
       pos = 0;
       protocolManager.fillPacket(cmd,buff, PACKET_PAYLOAD_SIZE);
-      protocolManager.sendPacket();
+      protocolManager.sendPacket(&lastCommFrom);
     }
   }
 }
@@ -163,7 +164,7 @@ uint16_t get_weight_value(byte *weight_data)
 void send_by_rf(byte *command, byte *data, uint8_t length)
 {
   protocolManager.fillPacket(command, data, length);
-  protocolManager.sendPacket();
+  protocolManager.sendPacket(&lastCommFrom);
 }
 
 void adjust_time(byte *data)
@@ -171,7 +172,7 @@ void adjust_time(byte *data)
   rtc.adjust(DateTime((char *)&data));
 }
 
-void dumpSDCard() {
+void dumpSDCard(uint8_t *pipe) {
   File myFile;
   byte buffer[PACKET_PAYLOAD_SIZE];
   byte cmd[2] = {'D','C'};
@@ -181,10 +182,10 @@ void dumpSDCard() {
     while(myFile.available()){
       count = myFile.read(buffer, PACKET_PAYLOAD_SIZE);
       protocolManager.fillPacket(cmd, buffer, count);
-      protocolManager.sendPacket();
+      protocolManager.sendPacket(pipe);
     }
     myFile.close();
   } else {
-    protocolManager.sendNack();
+    protocolManager.sendNack(&lastCommFrom);
   }
 }

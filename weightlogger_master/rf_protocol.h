@@ -52,33 +52,32 @@ class ElcanProto
 {
   RF24 *radio;
   struct elcanPacket data_packet;
-  byte writeAddress[5];
   bool protocolError;
   byte max_retries;
   long startActionTime;
-
+  byte addresses[3][6];
   const byte protocol_commands[9][2] = {
     {NACK, NOP}, {VALID, 0}, {ACK, 0}, {TIME_ADJUST, 0}, {STORE_CARD, SLAVE_BLOCK},
     {DUMP_EEPROM, DUMP_SDCARD}, {ERASE_CARD, 0}, {INVALID, 0}, {0, 0} };
 
   public:
     byte getPacket(uint8_t* pipe_num);
-    void sendPacket();
+    void sendPacket(uint8_t *pipe_num);
     void fillPacket(byte command[], byte data[], uint8_t length);
     void fillPacket(const char command[], byte data[], uint8_t length);
     byte calculateChecksum(byte *data, byte len);
-    void begin(byte writeAddress[], uint8_t max_retries, RF24 *radio);
-    void resendLastPacket();
+    void begin(byte *writeAddresses, uint8_t max_retries, RF24 *radio);
+    void resendLastPacket(uint8_t* );
     bool getPacketPayload(byte*);
-    void sendNack();
+    void sendNack(uint8_t* pipe);
     ElcanProto();
 
   private:
     void clearPacket();
     bool verifyChecksum();
-    void sendAck();
+    void sendAck(uint8_t* pipe);
     byte parseCommand();
-    void rfSendPacket();
+    void rfSendPacket(uint8_t *pipe);
 };
 
 #endif
