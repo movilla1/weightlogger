@@ -1,7 +1,7 @@
 /**
  * System wide defs.
  */
-#define LED 13
+#define LED 3
 
 /**
  * RF Protocol Constants

@@ -18,11 +18,13 @@
 /**
  * Ports used
  */
-#define LED 13
-#define BARRERA 0
-#define CHIP_SELECT_SD 4
-#define RTC_CS 2
-
+#define BARRERA 2
+#define LED 3
+#define CHIP_SELECT_SD 4  
+#define RADIO_PIN_A 7
+#define RADIO_PIN_B 8
+#define RST_PIN  9    //Pin 9 para el reset del RC522
+#define SS_PIN  10   //Pin 10 para el SS (SDA) del RC522
 /**
  * System Constants
  *
@@ -37,8 +39,7 @@
  * RF Protocol Constants
  */
 #define MAX_CARD_WAIT_TIME 10000 //10 seconds
-#define RADIO_PIN_A 7
-#define RADIO_PIN_B 8
+
 /**
  * SD card attached to SPI bus as follows:
  * MOSI - pin 11

@@ -41,7 +41,8 @@ void radio_comm_manager() {
         Serial.println("Error receiving data");
       }
       break;
-    case DUMP:
+    case DUMP_SDCARD:
+    case DUMP_EEPROM:
       protocolManager.getPacketPayload(data);
       for(byte i=0; i < PACKET_PAYLOAD_SIZE; i++) {
         Serial.write(data[i]);

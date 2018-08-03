@@ -14,7 +14,7 @@ void setup() {
   Wire.begin();
   pinMode(LED, OUTPUT);
   digitalWrite(LED, 0);
-  Serial.begin(28800, SERIAL_8N1);
+  Serial.begin(38400, SERIAL_8N1);
   initialize_radio();
   sys_state = READY;
   attemps = 0;
