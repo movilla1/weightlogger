@@ -1,4 +1,5 @@
 #define DEBUG true
+//#define WITH_WEIGHT true
 #include <Wire.h>
 #include <SPI.h>
 #include <RTClib.h>
