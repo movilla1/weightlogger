@@ -8,7 +8,7 @@
 void initialize_radio()
 {
   radio.begin(); // Setup and configure rf radio
-  radio.setChannel(1);
+  radio.setChannel(103);
   radio.setPALevel(RF24_PA_MAX);
   radio.setDataRate(RF24_1MBPS);
   radio.setAutoAck(1); // Ensure autoACK is enabled
@@ -99,9 +99,7 @@ void rf_store_card(byte *card_data)
     {
       timeout = true;
     }
-    if (mfrc522.PICC_IsNewCardPresent())
-    {
-      read_rfid_value();
+    if (getID()) {
       card.card_number = card_data[1];
       memcpy(card.card_uid, readCard, 4);
       EEPROM_writeBlock(card_data[0], card);

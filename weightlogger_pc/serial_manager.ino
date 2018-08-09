@@ -6,7 +6,6 @@ void serial_manager() {
   byte params[20];
   if (Serial.available()) {
     command = Serial.read();
-    
     switch (command)
     {
       case 'S':
@@ -31,6 +30,7 @@ void serial_manager() {
         Serial.readBytes(params,1);
         rf_send_delete_card(params);
         Serial.println("ACK");
+        break;
       default:
         Serial.println("NAK");
         break;
