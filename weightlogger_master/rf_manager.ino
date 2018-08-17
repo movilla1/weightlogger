@@ -64,6 +64,9 @@ void rf_protocol_manager()
     case DUMP_EEPROM:
       dump_eeprom();
       break;
+    case ERASE_CARD:
+      delete_card(data_buffer);
+      break;
     /*case SLAVE_BLOCK:
       memcpy(readCard, data_buffer, 4);
       ret = is_known_card(readCard);
@@ -77,9 +80,6 @@ void rf_protocol_manager()
         sys_state = READY;
       }
       break;*/
-    case ERASE_CARD:
-      delete_card(data_buffer);
-      break;
     /*case DUMP_SDCARD:
       dumpSDCard(&lastCommFrom);
       break;*/
