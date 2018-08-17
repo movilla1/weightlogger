@@ -6,7 +6,7 @@
 
 void initialize_radio() {
   radio.begin();                           // Setup and configure rf radio
-  radio.setChannel(1);
+  radio.setChannel(103);
   radio.setPALevel(RF24_PA_MAX);
   radio.setDataRate(RF24_1MBPS);
   radio.setAutoAck(1);                     // Ensure autoACK is enabled

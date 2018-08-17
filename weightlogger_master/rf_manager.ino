@@ -14,11 +14,10 @@ void initialize_radio()
   radio.setAutoAck(1); // Ensure autoACK is enabled
   radio.setRetries(2, 15);
   radio.setCRCLength(RF24_CRC_8);         // Use 8-bit CRC for performance
-  radio.openReadingPipe(1, addresses[1]); // Open a reading pipe on address 0, pipe 1
-  radio.openReadingPipe(2, addresses[2]); // Open a reading pipe on address 1, pipe 2
+  radio.openReadingPipe(1, addresses[0]); // Open a reading pipe on address 0, pipe 1
   radio.startListening();
   lastCommFrom = 0; //start with no lastComms
-  protocolManager.begin(addresses[0], 5, &radio);
+  protocolManager.begin(addresses[2], 5, &radio);
 }
 
 /**
@@ -39,27 +38,33 @@ void initialize_radio()
  **/
 void rf_protocol_manager()
 {
-  byte data_buffer[PACKET_PAYLOAD_SIZE];
+  byte data_buffer[PACKET_PAYLOAD_SIZE+1];
   byte cmd, tmp[7];
   byte ret;
   if (radio.available(&lastCommFrom))
   {
     cmd = protocolManager.getPacket(&lastCommFrom);
+    if (cmd != INVALID && cmd != DUMP_EEPROM && cmd != DUMP_SDCARD) {
+      protocolManager.getPacketPayload(data_buffer); //time is 19 characters long; (e.g.: 2018-07-25 12:03:10)
+    }
+#ifdef DEBUG
+    Serial.print("Got a command: ");
+    Serial.println(cmd);
+    data_buffer[PACKET_PAYLOAD_SIZE] = 0;
+    Serial.println((char *)data_buffer);
+#endif
     switch (cmd)
     {
     case TIME_ADJUST:
-      protocolManager.getPacketPayload(data_buffer); //time is 19 characters long; (e.g.: 2018-07-25 12:03:10)
       adjust_time(data_buffer);
       break;
     case STORE_CARD:
-      protocolManager.getPacketPayload(data_buffer);
       rf_store_card(data_buffer);
       break;
     case DUMP_EEPROM:
       dump_eeprom();
       break;
-    case SLAVE_BLOCK:
-      protocolManager.getPacketPayload(data_buffer);
+    /*case SLAVE_BLOCK:
       memcpy(readCard, data_buffer, 4);
       ret = is_known_card(readCard);
       answer_to_sender(ret);
@@ -71,14 +76,13 @@ void rf_protocol_manager()
         write_values_to_file('I');
         sys_state = READY;
       }
-      break;
+      break;*/
     case ERASE_CARD:
-      protocolManager.getPacketPayload(data_buffer);
       delete_card(data_buffer);
       break;
-    case DUMP_SDCARD:
+    /*case DUMP_SDCARD:
       dumpSDCard(&lastCommFrom);
-      break;
+      break;*/
     default:
       protocolManager.sendNack(&lastCommFrom);
       break;
@@ -127,36 +131,12 @@ void dump_eeprom()
   }
 }
 
-void answer_to_sender(bool opt)
-{
-  byte command[2][2] = { {'V','A'}, {'I','N'}};
-  byte tmp;
-  byte pos = 0;
-  pos = opt ? 0 : 1;
-  send_by_rf(command[pos], &tmp, 0);
-}
-
 void delete_card(byte *card_data)
 {
   struct card_block card;
   memset(card.card_uid, 0xff, sizeof(card.card_uid));
   card.card_number = 0xff;
   EEPROM_writeBlock(card_data[0], card); //writing everythign to 255 clears the eeprom block.
-}
-
-uint16_t get_weight_value(byte *weight_data)
-{
-  String str;
-  uint16_t weight;
-  if (weight_data[6] == 0x1B || weight_data[6] == 0x1C)
-  {
-    for (byte i = 0; i < 6; i++)
-    {
-      str += (char)weight_data[i];
-    }
-    weight = str.toInt();
-  }
-  return weight;
 }
 
 void send_by_rf(byte *command, byte *data, uint8_t length)
@@ -170,7 +150,31 @@ void adjust_time(byte *data)
   rtc.adjust(DateTime((char *)&data));
 }
 
-void dumpSDCard(uint8_t *pipe) {
+/*void answer_to_sender(bool opt)
+{
+  byte command[2][2] = { {'V','A'}, {'I','N'}};
+  byte tmp;
+  byte pos = 0;
+  pos = opt ? 0 : 1;
+  send_by_rf(command[pos], &tmp, 0);
+}*/
+
+/*uint16_t get_weight_value(byte *weight_data)
+{
+  String str;
+  uint16_t weight;
+  if (weight_data[6] == 0x1B || weight_data[6] == 0x1C)
+  {
+    for (byte i = 0; i < 6; i++)
+    {
+      str += (char)weight_data[i];
+    }
+    weight = str.toInt();
+  }
+  return weight;
+}*/
+
+/*void dumpSDCard(uint8_t *pipe) {
   File myFile;
   byte buffer[PACKET_PAYLOAD_SIZE];
   byte cmd[2] = {'D','C'};
@@ -186,4 +190,4 @@ void dumpSDCard(uint8_t *pipe) {
   } else {
     protocolManager.sendNack(&lastCommFrom);
   }
-}
+}*/

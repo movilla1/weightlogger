@@ -18,7 +18,7 @@ void initialize_rtc() {
     }
   }
 }
-
+/*
 void initialize_sd_card() {
   bool exit_init = false;
   uint8_t init_return;
@@ -38,6 +38,7 @@ void initialize_sd_card() {
     }
   }
 }
+*/
 
 void initialize_rfid() {
   mfrc522.PCD_Init();    // Initialize MFRC522 Hardware

@@ -3,7 +3,7 @@
  *
  */
 #define READY 1
-#define ERROR_SD 2
+//#define ERROR_SD 2
 #define ERROR_RFID 4
 #define ERROR_RTC 5
 #define ERROR_INVALID 7
@@ -22,7 +22,7 @@
 #define BUZZER 2
 #define LED 3
 #define BARRERA 5
-#define SDCARD_SS 4
+//#define SDCARD_SS 4
 #define RADIO_CE 7
 #define RADIO_SS 8
 #define RFID_RST  9    //Pin 9 para el reset del RC522
@@ -50,6 +50,6 @@
  * CS - pin 4 (for MKRZero SD: SDCARD_SS_PIN)
  */
 
-#define SPI_SDCARD 1
+//#define SPI_SDCARD 1
 #define SPI_RADIO 2
 #define SPI_RFID 4

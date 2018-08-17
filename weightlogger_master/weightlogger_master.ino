@@ -110,12 +110,13 @@ void loop() {
       sys_state = WRITE_RECORD;
       break;
     case WRITE_RECORD:
-      selectSPI(SPI_SDCARD);
+      /*selectSPI(SPI_SDCARD);
       initialize_sd_card();
       write_values_to_file('O');
       SD.end();
       selectSPI(SPI_RFID);
-      initialize_rfid();
+      initialize_rfid();*/
+      send_data_by_rf();
       timerStarted = rtc.now();
       sys_state = TIMED_WAIT;
       break;
@@ -224,23 +225,6 @@ void read_weight() {
   }
 }
 
-void write_values_to_file(char action) {
-  char timestring[20];
-  sprintf(timestring, "%04d/%02d/%02d %02d:%02d:%02d", enteringTime.year(), enteringTime.month(), 
-    enteringTime.day(), enteringTime.hour(), enteringTime.minute(), enteringTime.second());
-  myFile = SD.open("datalog.csv", O_WRITE | O_CREAT | O_APPEND);
-  myFile.print(timestring);
-  myFile.print(';');
-  myFile.print(whos_entering, DEC);
-#ifdef WITH_WEIGHT
-  myFile.print(';');
-  myFile.print(measuredWeight, DEC);
-#endif
-  myFile.print(';');
-  myFile.println(action);
-  myFile.close();
-}
-
 void open_barrier() {
   digitalWrite(BARRERA, 1);
   delay(8000); //wait until the barrier acknowledges the open command
@@ -312,11 +296,11 @@ void alertUnknown() {
 
 void selectSPI(const uint8_t opt) {
   switch(opt) {
-    case SPI_SDCARD:
+/*    case SPI_SDCARD:
       digitalWrite(SDCARD_SS, LOW);
       digitalWrite(RADIO_SS, HIGH);
       digitalWrite(RFID_SS, HIGH);
-      break;
+      break;*/
     case SPI_RADIO:
       digitalWrite(SDCARD_SS, HIGH);
       digitalWrite(RADIO_SS, LOW);
@@ -360,7 +344,7 @@ void serialOptions() {
       }
       Serial.println("Dump finished");
       break;
-    case 'C':
+    /*case 'C':
       selectSPI(SPI_SDCARD);
       initialize_sd_card();
       File myFile;
@@ -374,7 +358,24 @@ void serialOptions() {
       SD.end();
       selectSPI(SPI_RFID);
       initialize_rfid();
-      break;
+      break;*/
   }
 }
 #endif
+
+/*void write_values_to_file(char action) {
+  char timestring[20];
+  sprintf(timestring, "%04d/%02d/%02d %02d:%02d:%02d", enteringTime.year(), enteringTime.month(), 
+    enteringTime.day(), enteringTime.hour(), enteringTime.minute(), enteringTime.second());
+  myFile = SD.open("datalog.csv", O_WRITE | O_CREAT | O_APPEND);
+  myFile.print(timestring);
+  myFile.print(';');
+  myFile.print(whos_entering, DEC);
+#ifdef WITH_WEIGHT
+  myFile.print(';');
+  myFile.print(measuredWeight, DEC);
+#endif
+  myFile.print(';');
+  myFile.println(action);
+  myFile.close();
+}*/
