@@ -41,7 +41,7 @@ void setup() {
   pinMode(LED, OUTPUT);
   pinMode(BARRERA, OUTPUT);
   pinMode(BUZZER, OUTPUT);
-  pinMode(SDCARD_SS, OUTPUT);
+  //pinMode(SDCARD_SS, OUTPUT);
   pinMode(RADIO_CE, OUTPUT);
   pinMode(RADIO_SS, OUTPUT);
   pinMode(RFID_SS, OUTPUT);
@@ -76,7 +76,7 @@ void setup() {
 void loop() {
   bool tmp;
   switch(sys_state) {
-    case ERROR_SD:
+    //case ERROR_SD:
     case ERROR_RFID:
     case ERROR_RTC:
       show_error(sys_state);

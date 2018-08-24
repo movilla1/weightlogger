@@ -150,6 +150,17 @@ void adjust_time(byte *data)
   rtc.adjust(DateTime((char *)&data));
 }
 
+void send_data_by_rf() {
+  byte data[PACKET_PAYLOAD_SIZE];
+  uint16_t readcard_position = sizeof(measuredWeight)+1;
+  uint16_t time_position = readcard_position + sizeof(readCard) + 1;
+  memset(data, 0, sizeof(data)); //clear the array
+  memcpy(data, measuredWeight, sizeof(measuredWeight));
+  memcpy(data+readcard_position, readCard, sizeof(readCard));
+  memcpy(data+time_position, enteringTime, sizeof(enteringTime));
+  protocolManager.fillPacket("AD", data, sizeof(data));
+  protocolManager.sendPacket(&lastCommFrom);
+}
 /*void answer_to_sender(bool opt)
 {
   byte command[2][2] = { {'V','A'}, {'I','N'}};
