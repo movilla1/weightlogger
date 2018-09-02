@@ -3,9 +3,8 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <RTClib.h>
-#include <SD.h>
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
-#include <RF24.h>
+#include <LiquidCrystal_I2C.h>
 
 #include "eepromblock.h"
 #include "definitions.h"
@@ -29,25 +28,23 @@ uint16_t measuredWeight; // Stores weight in ram
 DateTime enteringTime;  //last time readed on the RTC
 DateTime timerStarted;
 ElcanProto protocolManager;
+LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
-/* Radio related config */
-byte addresses[][6] = {"ELCN1","ELCN2","ELCNM"};
-RF24 radio(RADIO_CE, RADIO_SS); //RF24 Radio on pins 7 & 8
 byte lastCommFrom;
 /**
  * System setup
  */
 void setup() {
-  pinMode(LED, OUTPUT);
+//  pinMode(LED, OUTPUT);
   pinMode(BARRERA, OUTPUT);
   pinMode(BUZZER, OUTPUT);
-  //pinMode(SDCARD_SS, OUTPUT);
-  pinMode(RADIO_CE, OUTPUT);
-  pinMode(RADIO_SS, OUTPUT);
+//  pinMode(SDCARD_SS, OUTPUT);
+//  pinMode(RADIO_CE, OUTPUT);
+//  pinMode(RADIO_SS, OUTPUT);
   pinMode(RFID_SS, OUTPUT);
   pinMode(RFID_RST, OUTPUT);
   digitalWrite(BARRERA, LOW);
-  digitalWrite(LED, LOW);
+//  digitalWrite(LED, LOW);
   digitalWrite(BUZZER, LOW);
 #ifdef DEBUG
   Serial.begin(57600, SERIAL_8N1); // according to wheight measurement device
@@ -60,12 +57,6 @@ void setup() {
   selectSPI(SPI_RFID);
   initialize_rfid();
 #ifdef DEBUG
-  Serial.println("Radio init...");
-#endif
-  selectSPI(SPI_RADIO);
-  initialize_radio();
-  selectSPI(SPI_RFID);
-#ifdef DEBUG
   Serial.println("Initialized");
 #endif
   sys_state = READY;
@@ -76,12 +67,13 @@ void setup() {
 void loop() {
   bool tmp;
   switch(sys_state) {
-    //case ERROR_SD:
+    case ERROR_WIFI:
     case ERROR_RFID:
     case ERROR_RTC:
       show_error(sys_state);
       break;
     case READY:
+      lcd_show_ready();
       selectSPI(SPI_RFID);
       if (getID()) {
         sys_state = READ_RFID;
@@ -100,37 +92,32 @@ void loop() {
       check_card_and_act(); //checks the card and if its valid, it starts the sequence
       break;
     case READ_RTC:
+      lcd_show_allowed();
       read_rtc_value();
       sys_state = READ_WEIGHT;
       break;
     case READ_WEIGHT:
+      lcd_show_wait();
  #ifdef WITH_WEIGHT
       read_weight();
  #endif
       sys_state = WRITE_RECORD;
       break;
     case WRITE_RECORD:
-      /*selectSPI(SPI_SDCARD);
-      initialize_sd_card();
-      write_values_to_file('O');
-      SD.end();
-      selectSPI(SPI_RFID);
-      initialize_rfid();*/
       send_data_by_rf();
       timerStarted = rtc.now();
       sys_state = TIMED_WAIT;
       break;
     case TIMED_WAIT:
+      
       if (check_elapsed_time()) {
         sys_state = OPEN_BARRIER;
       }
       break;
     case OPEN_BARRIER:
+      lcd_show_go();
       open_barrier();
       sys_state = READY;
-#ifdef DEBUG
-      Serial.println("Ready");
-#endif
       break;
     case UNKNOWN_CARD:
       alertUnknown();
@@ -286,6 +273,9 @@ bool check_elapsed_time() {
 }
 
 void alertUnknown() {
+  lcd.clear();
+  lcd.home();
+  lcd.println(F("Acceso negado, informando"));
   for (uint8_t i=0; i<3; i++) {
     digitalWrite(BUZZER, HIGH);
     delay(150);
@@ -296,16 +286,11 @@ void alertUnknown() {
 
 void selectSPI(const uint8_t opt) {
   switch(opt) {
-/*    case SPI_SDCARD:
-      digitalWrite(SDCARD_SS, LOW);
-      digitalWrite(RADIO_SS, HIGH);
-      digitalWrite(RFID_SS, HIGH);
-      break;*/
-    case SPI_RADIO:
+/*    case SPI_RADIO:
       digitalWrite(SDCARD_SS, HIGH);
       digitalWrite(RADIO_SS, LOW);
       digitalWrite(RFID_SS, HIGH);
-      break;
+      break;*/
     case SPI_RFID:
       digitalWrite(SDCARD_SS, HIGH);
       digitalWrite(RADIO_SS, HIGH);
@@ -344,38 +329,7 @@ void serialOptions() {
       }
       Serial.println("Dump finished");
       break;
-    /*case 'C':
-      selectSPI(SPI_SDCARD);
-      initialize_sd_card();
-      File myFile;
-      myFile = SD.open("datalog.csv", O_READ);
-      if (myFile) {
-        while (myFile.available()) {
-          Serial.write(myFile.read());
-        }
-        myFile.close();
-      }
-      SD.end();
-      selectSPI(SPI_RFID);
-      initialize_rfid();
-      break;*/
   }
 }
 #endif
 
-/*void write_values_to_file(char action) {
-  char timestring[20];
-  sprintf(timestring, "%04d/%02d/%02d %02d:%02d:%02d", enteringTime.year(), enteringTime.month(), 
-    enteringTime.day(), enteringTime.hour(), enteringTime.minute(), enteringTime.second());
-  myFile = SD.open("datalog.csv", O_WRITE | O_CREAT | O_APPEND);
-  myFile.print(timestring);
-  myFile.print(';');
-  myFile.print(whos_entering, DEC);
-#ifdef WITH_WEIGHT
-  myFile.print(';');
-  myFile.print(measuredWeight, DEC);
-#endif
-  myFile.print(';');
-  myFile.println(action);
-  myFile.close();
-}*/

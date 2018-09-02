@@ -1,8 +1,14 @@
-\BOOKMARK [1][-]{section.1}{Document Version Control}{}% 1
-\BOOKMARK [1][-]{section.2}{Project distribution list}{}% 2
-\BOOKMARK [1][-]{section.3}{Document Purpose}{}% 3
-\BOOKMARK [1][-]{section.4}{Requirements}{}% 4
-\BOOKMARK [1][-]{section.5}{Design}{}% 5
-\BOOKMARK [2][-]{subsection.5.1}{Electronics}{section.5}% 6
-\BOOKMARK [3][-]{subsubsection.5.1.1}{assembly PCB}{subsection.5.1}% 7
-\BOOKMARK [2][-]{subsection.5.2}{Administrative Software}{section.5}% 8
+\BOOKMARK [1][-]{section.1}{Control de version}{}% 1
+\BOOKMARK [1][-]{section.2}{Lista de distribuci\363n del proyecto}{}% 2
+\BOOKMARK [1][-]{section.3}{Prop\363sito del documento}{}% 3
+\BOOKMARK [1][-]{section.4}{Requerimientos}{}% 4
+\BOOKMARK [1][-]{section.5}{Dise\361o}{}% 5
+\BOOKMARK [2][-]{subsection.5.1}{Electr\363nica}{section.5}% 6
+\BOOKMARK [2][-]{subsection.5.2}{Casos de uso de la electr\363nica}{section.5}% 7
+\BOOKMARK [2][-]{subsection.5.3}{Secuencia para un registro}{section.5}% 8
+\BOOKMARK [2][-]{subsection.5.4}{Secuencia para agregar un TAG}{section.5}% 9
+\BOOKMARK [3][-]{subsubsection.5.4.1}{Dise\361o del PCB}{subsection.5.4}% 10
+\BOOKMARK [2][-]{subsection.5.5}{Protocolo de comando}{section.5}% 11
+\BOOKMARK [2][-]{subsection.5.6}{Mensajes del sistema}{section.5}% 12
+\BOOKMARK [3][-]{subsubsection.5.6.1}{C\363digos de error}{subsection.5.6}% 13
+\BOOKMARK [2][-]{subsection.5.7}{Software de Administraci\363n}{section.5}% 14
