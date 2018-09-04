@@ -1,6 +1,7 @@
 #define DEBUG true
 //#define WITH_WEIGHT true
 #include <Wire.h>
+#include <SoftwareSerial.h>
 #include <SPI.h>
 #include <RTClib.h>
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
@@ -8,60 +9,40 @@
 
 #include "eepromblock.h"
 #include "definitions.h"
-#include "rf_protocol.h"
-
-struct card_block {
-  byte card_uid[4];
-  byte card_number;
-};
-
-/**
- * Global Variables
- */
-File myFile;
-RTC_DS3231 rtc;
-MFRC522 mfrc522(RFID_SS, RFID_RST); //Creamos el objeto para el RC522
-byte sys_state;
-byte readCard[4];   // Stores scanned ID read from RFID Module
-byte whos_entering; //stores in ram the card position that's readed
-uint16_t measuredWeight; // Stores weight in ram
-DateTime enteringTime;  //last time readed on the RTC
-DateTime timerStarted;
-ElcanProto protocolManager;
-LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+#include "globals.h"
 
 byte lastCommFrom;
 /**
  * System setup
  */
 void setup() {
-//  pinMode(LED, OUTPUT);
+  pinMode(WIFI_RX, INPUT);
+  pinMode(WIFI_TX, OUTPUT);
   pinMode(BARRERA, OUTPUT);
+  pinMode(WPS_BUTTON, INPUT_PULLUP);
   pinMode(BUZZER, OUTPUT);
-//  pinMode(SDCARD_SS, OUTPUT);
-//  pinMode(RADIO_CE, OUTPUT);
-//  pinMode(RADIO_SS, OUTPUT);
   pinMode(RFID_SS, OUTPUT);
   pinMode(RFID_RST, OUTPUT);
   digitalWrite(BARRERA, LOW);
-//  digitalWrite(LED, LOW);
   digitalWrite(BUZZER, LOW);
-#ifdef DEBUG
-  Serial.begin(57600, SERIAL_8N1); // according to wheight measurement device
-#else
-  Serial.begin(4800, SERIAL_8N1);
+#ifdef WITH_WEIGHT
+  Serial.begin(4800, SERIAL_8N1); // according to wheight measurement device
 #endif
+#ifdef DEBUG
+  Serial.begin(57600);
+#endif
+  //wifi.begin(115200);     // fire the wifi serial
   SPI.begin();           // MFRC522 Hardware uses SPI protocol
   Wire.begin();
+  lcd.begin(16,2);
   initialize_rtc();
-  selectSPI(SPI_RFID);
   initialize_rfid();
-#ifdef DEBUG
-  Serial.println("Initialized");
-#endif
+  initialize_wifi();
   sys_state = READY;
   lastCommFrom = 0;
   whos_entering = 0;
+  lcd.backlight(); //turn on the led
+  lcd_show_ip();
 }
 
 void loop() {
@@ -74,14 +55,12 @@ void loop() {
       break;
     case READY:
       lcd_show_ready();
-      selectSPI(SPI_RFID);
       if (getID()) {
         sys_state = READ_RFID;
       }
-      selectSPI(SPI_RADIO);
-      if (radio.available(&lastCommFrom)){
+      /*if (wifi.available()){
         sys_state = DATA_LINK;
-      }
+      }*/
 #ifdef DEBUG
       if (Serial.available()){
         serialOptions();
@@ -104,12 +83,11 @@ void loop() {
       sys_state = WRITE_RECORD;
       break;
     case WRITE_RECORD:
-      send_data_by_rf();
+      send_to_server();
       timerStarted = rtc.now();
       sys_state = TIMED_WAIT;
       break;
     case TIMED_WAIT:
-      
       if (check_elapsed_time()) {
         sys_state = OPEN_BARRIER;
       }
@@ -124,7 +102,7 @@ void loop() {
       sys_state = READY;
       break;
     case DATA_LINK:
-      rf_protocol_manager();
+      //TODO: Implement again
       break;
   }
 }
@@ -255,8 +233,6 @@ void store_card(struct card_block card, byte position) {
   int pos = 5 * (position + 1);
   if ( pos < 200) {  //if we are not full capacity
     EEPROM_writeBlock(pos, card); //store the card
-  } else {
-    answer_to_sender(false);
   }
 }
 
@@ -272,10 +248,16 @@ bool check_elapsed_time() {
   return false;
 }
 
+void send_to_server() {
+  //TODO : Implement.
+}
+
 void alertUnknown() {
   lcd.clear();
   lcd.home();
-  lcd.println(F("Acceso negado, informando"));
+  lcd.print(F("Acceso negado,"));
+  lcd.setCursor(0,1);
+  lcd.print(F("Informando..."));
   for (uint8_t i=0; i<3; i++) {
     digitalWrite(BUZZER, HIGH);
     delay(150);
@@ -284,19 +266,43 @@ void alertUnknown() {
   }
 }
 
-void selectSPI(const uint8_t opt) {
-  switch(opt) {
-/*    case SPI_RADIO:
-      digitalWrite(SDCARD_SS, HIGH);
-      digitalWrite(RADIO_SS, LOW);
-      digitalWrite(RFID_SS, HIGH);
-      break;*/
-    case SPI_RFID:
-      digitalWrite(SDCARD_SS, HIGH);
-      digitalWrite(RADIO_SS, HIGH);
-      digitalWrite(RFID_SS, LOW);
-      break;
+void lcd_show_ready() {
+  char dateString[15];
+  lcd.setCursor(0,0);
+  DateTime tstamp = rtc.now();
+  sprintf(dateString, "%02d/%02d/%04d %02d:%02d",tstamp.day(),tstamp.month(),tstamp.year(),tstamp.hour(),tstamp.minute());
+  lcd.print(dateString);
+  lcd.setCursor(0,1);
+  lcd.println(F("Esperando..."));
+}
+
+void lcd_show_ip() {
+  /*wifi.write("AT+CIFSR");
+  String receivedIP;
+  String result;
+  receivedIP = wifi.readStringUntil('\n');
+  result = wifi.readStringUntil('\n');
+  if (result == "OK") {
+    receivedIP += 8; //SKIP "+ CIFSR:"
   }
+  lcd.setCursor(1,1);
+  lcd.println(receivedIP);*/
+}
+
+void lcd_show_allowed() {
+  lcd.clear();
+  lcd.setCursor(1,1);
+  lcd.println(F("Acceso permitido"));
+}
+
+void lcd_show_wait() {
+  lcd.clear();
+  lcd.println(F("Espere por favor..."));
+}
+
+void lcd_show_go() {
+  lcd.clear();
+  lcd.println(F("Avance..."));
 }
 
 #ifdef DEBUG
@@ -314,7 +320,7 @@ void serialOptions() {
       Serial.println("Scan");
       readed[0] *= sizeof(card_block);
       readed[0] ++;
-      rf_store_card(readed);
+      //rf_store_card(readed);
       Serial.println("Ready");
       break;
     case 'D':

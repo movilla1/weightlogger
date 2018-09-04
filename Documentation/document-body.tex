@@ -11,7 +11,7 @@ Los siguientes requerimientos han sido obtenidos por el PO\footnote{Product Owne
 	\item debe contar con un display LED y un buzzer para sonido.
 	\item Podr\'ia usar energ\'ia solar como fuente de alimentaci\'on si el costo del proyecto lo permite.
 	\item Los dispositivos permanecer\'an en el exterior, necesitando cuidados m\'inimos para su funcionamiento.
-	\item Habr\'a un servidor conectado a la red donde los dispositivos enviar\'an  la informaci\'on "directamente".
+	\item Habr\'a un servidor conectado a la red donde los dispositivos enviar\'an  la informaci\'on ``directamente''.
 	\item El servidor estar\'a conectado y disponible con un uptime mayor o igual al 99\% del tiempo de trabajo del cliente final.
 	\item El software administrativo ser\'a basado en web, permitiendo el acceso desde m\'ultiples dispositivos.
 	\item Los datos del sistema se mantendr\'an en la locaci\'on del cliente, no siendo necesario el uso de internet para su utilizaci\'on.
@@ -68,6 +68,14 @@ El dise\~no de la placa para el sistema electr\'onico se detalla en la figura \r
 	\caption{PCB v1.0}
 	\includegraphics[width=0.5\textwidth]{images/weightlogger_pcb}
 	\label{fig:pcb}
+\end{figure}
+
+Al no disponer de más de una interface serial, la conexión con el wifi y/o balanza (a determinar en pruebas) 
+se hará mediante I2C, con la placa mostrada en la figura \ref{fig:pcb-i2c}
+\begin{figure}[h!]
+  \caption{PCB interface I2C-Serial}
+  \includegraphics[width=0.5\textwidth]{images/interface-i2c-serial.png}
+  \label{fig:pcb-i2c}
 \end{figure}
 
 \subsection{Protocolo de comando}

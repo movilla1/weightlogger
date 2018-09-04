@@ -1,6 +1,5 @@
 {
-    "board": "arduino:avr:nano",
-    "configuration": "cpu=atmega328old",
-    "sketch": "weightlogger_master/weightlogger_master.ino",
-    "port": "/dev/ttyUSB0"
+    "board": "arduino:avr:uno",
+    "sketch": "weightlogger_i2c/weightlogger_i2c.ino",
+    "port": "/dev/ttyACM0"
 }
