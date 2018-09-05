@@ -161,32 +161,30 @@ void set_server_ip() {
 
 void transmit_to_server() {
   char t;
-  char command[]="AT+CIPSENDEX=512"; //512 bytes per packet, max.
+  //char command[]=F("AT+CIPSENDEX=512"); //512 bytes per packet, max.
   start_tcp_to_server();
-  Serial.println(command);
+  Serial.println(F("AT+CIPSENDEX=512"));
   send_base_http_request();
-  Serial.println(" ");
-  Serial.println("data=");
+  Serial.println(F(" "));
+  Serial.print(F("data="));
   while(Wire.available()) {
     t = Wire.read();
     Serial.write(t);
   }
-  Serial.println(" ");
+  Serial.println(F(" "));
   Serial.write(0x00); //end transmission.
   stop_tcp_to_server();
   empty_serial_buffer(); //throw away the response (and hope for the best)
 }
 
 void send_base_http_request() {
-  const char request[] = "User-Agent: Mozilla/5.0 (Weightlogger; es-AR; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5\r\n\
+  Serial.println(F("POST /pesaje_insert HTTP/1.1"));
+  Serial.println(F("User-Agent: Mozilla/5.0 (Weightlogger; es-AR; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5\r\n\
   Accept: text/html, application/xml, application/json;q=0.9;q=0.8;q=0.9\r\n\
   Accept-Language: en-us,en;q=0.5\r\n\
   Accept-Charset: ISO-8859-1;q=0.7\r\n\
   Content-Length: 64\r\n\
-  Content-Type: application/x-www-form-urlencoded\r\n";
-  const char postRequest[] = "POST /pesaje_insert HTTP/1.1";
-  Serial.println(postRequest);
-  Serial.println(request);
+  Content-Type: application/x-www-form-urlencoded\r\n"));
 }
 
 void start_tcp_to_server() {
@@ -198,8 +196,7 @@ void start_tcp_to_server() {
 }
 
 void stop_tcp_to_server() {
-  char stop_command[] = "AT+CIPCLOSE=5";  //close all connections
-  Serial.println(stop_command);
+  Serial.println(F("AT+CIPCLOSE=5"));//close all connections
 }
 
 void eeprom_read_server_ip() {
