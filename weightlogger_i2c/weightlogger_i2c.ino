@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <EEPROM.h>
 
 #define IP_START_POS_IN_RESPONSE 7
 #define IP_START_ADDR 0x00
@@ -19,7 +20,7 @@
 byte sysState;
 byte dataToSend, dataToWifi;
 char dataBuffer[BUFFER_SIZE];
-
+char serverIP[16]; //server ip max: 255.255.255.255 (kept in ascii format) 15 characters + 0x00 string end
 void setup() {
   Wire.begin(I2C_ADDR);
   pinMode(LED, OUTPUT);
@@ -31,13 +32,13 @@ void setup() {
   initialize_wifi();
   sysState = READY;
   dataToSend = dataToWifi = 0;
+  memset(serverIP, 0, sizeof(serverIP));
+  eeprom_read_server_ip();
 }
 
 void loop() {
   long tStart, tElapsed;
   switch(sysState) {
-    case READY:
-      break;
     case WPS_SETUP:
       send_wifi_wps_setup();
       tStart = millis();
@@ -47,8 +48,6 @@ void loop() {
       if (tElapsed > WPS_TIMEOUT) {
         send_wifi_wps_stop();
       }
-    case I2C_GET:
-      break;
     case ERROR_WIFI:
       showError();
       break;
@@ -153,20 +152,62 @@ void set_server_ip() {
       exit = true;
     } else {
       EEPROM.write(IP_START_ADDR + pos, tmp);
+      serverIP[pos] = tmp;
       pos ++;
       pos %= 15; // IP Address must be 15 characters or less
     }
   }
-} 
+}
 
 void transmit_to_server() {
   char t;
+  char command[]="AT+CIPSENDEX=512"; //512 bytes per packet, max.
+  start_tcp_to_server();
+  Serial.println(command);
+  send_base_http_request();
+  Serial.println(" ");
+  Serial.println("data=");
   while(Wire.available()) {
     t = Wire.read();
     Serial.write(t);
   }
+  Serial.println(" ");
+  Serial.write(0x00); //end transmission.
+  stop_tcp_to_server();
+  empty_serial_buffer(); //throw away the response (and hope for the best)
 }
 
-void receive_data() {
-  // TODO: Implement
+void send_base_http_request() {
+  const char request[] = "User-Agent: Mozilla/5.0 (Weightlogger; es-AR; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5\r\n\
+  Accept: text/html, application/xml, application/json;q=0.9;q=0.8;q=0.9\r\n\
+  Accept-Language: en-us,en;q=0.5\r\n\
+  Accept-Charset: ISO-8859-1;q=0.7\r\n\
+  Content-Length: 64\r\n\
+  Content-Type: application/x-www-form-urlencoded\r\n";
+  const char postRequest[] = "POST /pesaje_insert HTTP/1.1";
+  Serial.println(postRequest);
+  Serial.println(request);
+}
+
+void start_tcp_to_server() {
+  char st_command_tail [] =  "\",80";
+  String st_command = F("AT+CIPSTART=\"TCP\",\"");
+  st_command += serverIP;
+  st_command += st_command_tail;
+  Serial.println(st_command);
+}
+
+void stop_tcp_to_server() {
+  char stop_command[] = "AT+CIPCLOSE=5";  //close all connections
+  Serial.println(stop_command);
+}
+
+void eeprom_read_server_ip() {
+  char tmp;
+  for (byte i=0; i < sizeof(serverIP)-1; i++) {
+    tmp = EEPROM.read(IP_START_ADDR+i);
+    if (tmp > '0' && tmp < '9') {
+      serverIP[i] = tmp;
+    }
+  }
 }

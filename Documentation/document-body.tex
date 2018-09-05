@@ -40,42 +40,52 @@ El IP configurado en el dispositivo se mostrará cada vez que se inicie el mismo
 \subsection{Casos de uso de la electr\'onica}
 En la figura \ref{fig:usecase}, pueden verse los casos de uso del equipo electr\'onico a dise\~nar.
 \begin{figure}[h!]
-	\caption{Casos de uso Electr\'onica}
-	\includegraphics[width=0.5\textwidth]{images/casos_uso_electronica.png}
-	\label{fig:usecase}
+	\begin{center}
+		\includegraphics[width=0.5\textwidth]{images/casos_uso_electronica.png}
+		\caption{Casos de uso Electr\'onica}
+		\label{fig:usecase}
+	\end{center}
 \end{figure}
 
 \subsection{Secuencia para un registro}
 Para registrar un evento se seguir\'a la secuencia demostrada el la figura \ref{fig:sequence-elect}
 \begin{figure}[h!]
-	\caption{Diagrama de secuencia}
-	\includegraphics[width=0.7\textwidth]{images/diagrama_secuencia_electronica.png}
-	\label{fig:sequence-elect}
+	\begin{center}
+		\includegraphics[width=0.7\textwidth]{images/diagrama_secuencia_electronica.png}
+		\label{fig:sequence-elect}
+		\caption{Diagrama de secuencia}
+	\end{center}
 \end{figure}
 
 \subsection{Secuencia para agregar un TAG}
 La secuencia en la figura \ref{fig:seq-tag} muestra los pasos requeridos para agregar un tag como conocido en la base del equipo, 
 los tags que no estén como conocidos causarán una alerta en el sistema y no cambiará el semáforo o activará la barrera.
 \begin{figure}[h!]
-	\caption{Secuencia registro de tag}
-	\includegraphics[width=0.6\textwidth]{images/secuencia-agregar-tag.png}
-	\label{fig:seq-tag}
+	\begin{center}
+		\includegraphics[width=0.6\textwidth]{images/secuencia-agregar-tag.png}
+		\caption{Secuencia registro de tag}
+		\label{fig:seq-tag}
+	\end{center}
 \end{figure}
 
 \subsubsection{Dise\~no del PCB}
 El dise\~no de la placa para el sistema electr\'onico se detalla en la figura \ref{fig:pcb}
 \begin{figure}[h!]
-	\caption{PCB v1.0}
-	\includegraphics[width=0.5\textwidth]{images/weightlogger_pcb}
-	\label{fig:pcb}
+	\begin{center}
+		\includegraphics[width=0.5\textwidth]{images/weightlogger_pcb.png}
+		\caption{PCB v1.0}
+		\label{fig:pcb}
+	\end{center}
 \end{figure}
 
 Al no disponer de más de una interface serial, la conexión con el wifi y/o balanza (a determinar en pruebas) 
 se hará mediante I2C, con la placa mostrada en la figura \ref{fig:pcb-i2c}
 \begin{figure}[h!]
-  \caption{PCB interface I2C-Serial}
-  \includegraphics[width=0.5\textwidth]{images/interface-i2c-wifi.png}
-  \label{fig:pcb-i2c}
+	\begin{center}
+		\includegraphics[width=0.5\textwidth]{images/interface-i2c-wifi.png}
+		\caption{PCB interface I2C-Serial}
+		\label{fig:pcb-i2c}
+	\end{center}
 \end{figure}
 
 \subsection{Protocolo de comando}
@@ -126,4 +136,24 @@ Los siguientes códigos de error se manejarán en el dispositivo:\label{sec:erro
 \end{center}
 \subsection{Software de Administración}
 
-El software de administraci\'on requerido ser\'a desarrollado en Ruby On Rails para mejor velocidad de desarrollo..
+El software de administraci\'on requerido ser\'a desarrollado en Ruby On Rails para mejor velocidad de desarrollo.
+
+\subsubsection{Casos de uso para el sistema}
+Los casos de uso que se han considerado para el sistema administrativo se detallan en la figura \ref{fig:usecase-admin}, se incorporarán más casos en las subsiguientes iteraciones del sistema.
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[width=0.6\textwidth]{images/casos-sistema-admin.png}
+		\caption{Casos de uso sistema Administrativo}
+		\label{fig:usecase-admin}
+	\end{center}
+\end{figure}
+
+\subsubsection{Diagrama de entidad relación}
+Las entidades y sus relaciones se detallan en la figura \ref{fig:er}, se evolucionarán sus partes acorde se avance en las versiones del sistema desarrollado.
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[width=0.6\textwidth]{images/ER-SistemaAdmin.png}
+		\caption{Diagrama Entidad-Relación}
+		\label{fig:er}
+	\end{center}
+\end{figure}
