@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2018.5.24)  4 SEP 2018 22:53
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2018.5.24)  5 SEP 2018 01:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1177,7 +1177,7 @@ LaTeX Font Info:    Try loading font information for OT1+bch on input line 53.
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1bch.fd
 File: ot1bch.fd 2004/10/18 font definitions for OT1/bch.
 )
-<images/logo.png, id=71, 308.352pt x 98.5281pt>
+<images/logo.png, id=75, 308.352pt x 98.5281pt>
 File: images/logo.png Graphic file (type png)
 <use images/logo.png>
 Package pdftex.def Info: images/logo.png  used on input line 53.
@@ -1343,7 +1343,7 @@ Package babel Info: Redefining spanish shorthand "!
 (babel)             in language  on input line 40.
 Package babel Info: Redefining spanish shorthand "?
 (babel)             in language  on input line 40.
-<images/casos_uso_electronica.png, id=93, 284.06125pt x 452.69125pt>
+<images/casos_uso_electronica.png, id=97, 284.06125pt x 452.69125pt>
 File: images/casos_uso_electronica.png Graphic file (type png)
 <use images/casos_uso_electronica.png>
 Package pdftex.def Info: images/casos_uso_electronica.png  used on input line 4
@@ -1365,7 +1365,7 @@ Package babel Info: Redefining spanish shorthand "!
 (babel)             in language  on input line 50.
 Package babel Info: Redefining spanish shorthand "?
 (babel)             in language  on input line 50.
-<images/diagrama_secuencia_electronica.png, id=95, 512.91624pt x 462.72874pt>
+<images/diagrama_secuencia_electronica.png, id=99, 512.91624pt x 462.72874pt>
 File: images/diagrama_secuencia_electronica.png Graphic file (type png)
 <use images/diagrama_secuencia_electronica.png>
 Package pdftex.def Info: images/diagrama_secuencia_electronica.png  used on inp
@@ -1417,7 +1417,7 @@ Package babel Info: Redefining spanish shorthand "!
 (babel)             in language  on input line 60.
 Package babel Info: Redefining spanish shorthand "?
 (babel)             in language  on input line 60.
-<images/secuencia-agregar-tag.png, id=124, 502.87875pt x 422.57875pt>
+<images/secuencia-agregar-tag.png, id=128, 502.87875pt x 422.57875pt>
 File: images/secuencia-agregar-tag.png Graphic file (type png)
 <use images/secuencia-agregar-tag.png>
 Package pdftex.def Info: images/secuencia-agregar-tag.png  used on input line 6
@@ -1438,7 +1438,7 @@ Package babel Info: Redefining spanish shorthand "!
 (babel)             in language  on input line 71.
 Package babel Info: Redefining spanish shorthand "?
 (babel)             in language  on input line 71.
-<images/weightlogger_pcb.png, id=126, 469.755pt x 641.39626pt>
+<images/weightlogger_pcb.png, id=130, 469.755pt x 641.39626pt>
 File: images/weightlogger_pcb.png Graphic file (type png)
 <use images/weightlogger_pcb.png>
 Package pdftex.def Info: images/weightlogger_pcb.png  used on input line 75.
@@ -1446,7 +1446,7 @@ Package pdftex.def Info: images/weightlogger_pcb.png  used on input line 75.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/interface-i2c-wifi.png, id=128, 370.38374pt x 646.415pt>
+<images/interface-i2c-wifi.png, id=132, 370.38374pt x 646.415pt>
 File: images/interface-i2c-wifi.png Graphic file (type png)
 <use images/interface-i2c-wifi.png>
 Package pdftex.def Info: images/interface-i2c-wifi.png  used on input line 85.
@@ -1624,7 +1624,7 @@ Package babel Info: Redefining spanish shorthand "!
 (babel)             in language  on input line 141.
 Package babel Info: Redefining spanish shorthand "?
 (babel)             in language  on input line 141.
-<images/casos-sistema-admin.png, id=158, 501.875pt x 513.92pt>
+<images/casos-sistema-admin.png, id=162, 501.875pt x 513.92pt>
 File: images/casos-sistema-admin.png Graphic file (type png)
 <use images/casos-sistema-admin.png>
 Package pdftex.def Info: images/casos-sistema-admin.png  used on input line 145
@@ -1642,12 +1642,48 @@ Package babel Info: Redefining spanish shorthand "!
 (babel)             in language  on input line 151.
 Package babel Info: Redefining spanish shorthand "?
 (babel)             in language  on input line 151.
-<images/ER-SistemaAdmin.png, id=160, 463.7325pt x 182.6825pt>
+<images/ER-SistemaAdmin.png, id=164, 463.7325pt x 182.6825pt>
 File: images/ER-SistemaAdmin.png Graphic file (type png)
 <use images/ER-SistemaAdmin.png>
 Package pdftex.def Info: images/ER-SistemaAdmin.png  used on input line 155.
 (pdftex.def)             Requested size: 273.14923pt x 107.60611pt.
-)
+Package babel Info: Redefining spanish shorthand <<
+(babel)             in language  on input line 161.
+Package babel Info: Redefining spanish shorthand >>
+(babel)             in language  on input line 161.
+Package babel Info: Redefining spanish shorthand "=
+(babel)             in language  on input line 161.
+Package babel Info: Redefining spanish shorthand "~
+(babel)             in language  on input line 161.
+Package babel Info: Redefining spanish shorthand "!
+(babel)             in language  on input line 161.
+Package babel Info: Redefining spanish shorthand "?
+(babel)             in language  on input line 161.
+Package babel Info: Redefining spanish shorthand <<
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand >>
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand "=
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand "~
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand "!
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand "?
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand <<
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand >>
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand "=
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand "~
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand "!
+(babel)             in language  on input line 165.
+Package babel Info: Redefining spanish shorthand "?
+(babel)             in language  on input line 165.
+ [7 <./images/casos-sistema-admin.png> <./images/ER-SistemaAdmin.png>])
 Package babel Info: Redefining spanish shorthand <<
 (babel)             in language  on input line 56.
 Package babel Info: Redefining spanish shorthand >>
@@ -1672,7 +1708,7 @@ Package babel Info: Redefining spanish shorthand "!
 (babel)             in language  on input line 56.
 Package babel Info: Redefining spanish shorthand "?
 (babel)             in language  on input line 56.
- [7 <./images/casos-sistema-admin.png> <./images/ER-SistemaAdmin.png>]
+ [8]
 
 Package catoptions Warning: Undefined options 
 (catoptions)                [Family, Option, Value]: 
@@ -1692,14 +1728,14 @@ LaTeX Info: Redefining \% on input line 23.
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 56.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 56.
 Package rerunfilecheck Info: File `weightlogger-design.out' has not changed.
-(rerunfilecheck)             Checksum: 1ABF17F21DA58BA9045172E8AE3F4A7D;1131.
+(rerunfilecheck)             Checksum: 3A934FB24C28AD1A5D7CF6498DEBF8D5;1232.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 56.
  ) 
 Here is how much of TeX's memory you used:
- 21973 strings out of 494861
- 404729 string characters out of 6178804
- 518392 words of memory out of 5000000
- 24869 multiletter control sequences out of 15000+600000
+ 21976 strings out of 494861
+ 404775 string characters out of 6178804
+ 518433 words of memory out of 5000000
+ 24870 multiletter control sequences out of 15000+600000
  13331 words of font info for 36 fonts, out of 8000000 for 9000
  40 hyphenation exceptions out of 8191
  68i,16n,69p,421b,856s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1716,10 +1752,10 @@ dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/f
 onts/type1/public/amsfonts/cm/cmtt12.pfb></usr/share/texmf/fonts/type1/public/l
 m/lmssbo10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/bookman/ubkdi8a.p
 fb>
-Output written on weightlogger-design.pdf (8 pages, 347881 bytes).
+Output written on weightlogger-design.pdf (9 pages, 348862 bytes).
 PDF statistics:
- 224 PDF objects out of 1000 (max. 8388607)
- 186 compressed objects within 2 object streams
- 51 named destinations out of 1000 (max. 500000)
- 181 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 232 PDF objects out of 1000 (max. 8388607)
+ 193 compressed objects within 2 object streams
+ 53 named destinations out of 1000 (max. 500000)
+ 189 words of extra memory for PDF output out of 10000 (max. 10000000)
 
