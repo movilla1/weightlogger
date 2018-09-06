@@ -8,17 +8,17 @@ void show_error(uint8_t error_code) {
   switch(error_code) {
     case ERROR_RFID:
       blinks = 2;
-      lcd.println(F("Error 502"));
+      lcd.print(F("Error 502"));
       break;
     case ERROR_RTC:
       blinks = 3;
-      lcd.println(F("Error 501"));
+      lcd.print(F("Error 501"));
     case ERROR_WIFI:
       blinks = 4;
-      lcd.println(F("Error 503"));
+      lcd.print(F("Error 503"));
       break;
     default:
-      lcd.println(F("Error"));
+      lcd.print(F("Error 500"));
       blinks = 1;
       break;
   }

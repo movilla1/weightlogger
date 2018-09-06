@@ -14,6 +14,7 @@ byte whos_entering; //stores in ram the card position that's readed
 uint16_t measuredWeight; // Stores weight in ram
 DateTime enteringTime;  //last time readed on the RTC
 DateTime timerStarted;
+long backlightStart;
 
 struct card_block {
   byte card_uid[4];

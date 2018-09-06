@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
-    "sketch": "weightlogger_i2c/weightlogger_i2c.ino",
+    "sketch": "weightlogger_master/weightlogger_master.ino",
     "port": "/dev/ttyACM0"
 }

@@ -178,7 +178,7 @@ void transmit_to_server() {
 }
 
 void send_base_http_request() {
-  Serial.println(F("POST /pesaje_insert HTTP/1.1"));
+  Serial.println(F("POST /pesaje/create_from_rfid HTTP/1.1"));
   Serial.println(F("User-Agent: Mozilla/5.0 (Weightlogger; es-AR; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5\r\n\
   Accept: text/html, application/xml, application/json;q=0.9;q=0.8;q=0.9\r\n\
   Accept-Language: en-us,en;q=0.5\r\n\

@@ -37,6 +37,7 @@
 #define MAX_WEIGHT_WAIT_TIME 3000 // 3 seconds
 #define MAX_BYTES_WRONG 1024 // if we can't get a steady weight after 1K bytes received then timeout.
 #define LCD_ADDRESS 0x27
+#define LIGHT_DURATION 4000 // 4 seconds with the light on.
 /**
  * RF Protocol Constants
  */

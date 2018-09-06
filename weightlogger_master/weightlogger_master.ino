@@ -1,7 +1,6 @@
 #define DEBUG true
 //#define WITH_WEIGHT true
 #include <Wire.h>
-#include <SoftwareSerial.h>
 #include <SPI.h>
 #include <RTClib.h>
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
@@ -10,8 +9,6 @@
 #include "eepromblock.h"
 #include "definitions.h"
 #include "globals.h"
-
-byte lastCommFrom;
 /**
  * System setup
  */
@@ -39,18 +36,19 @@ void setup() {
   initialize_rfid();
   initialize_wifi();
   sys_state = READY;
-  lastCommFrom = 0;
   whos_entering = 0;
-  lcd.backlight(); //turn on the led
+  backlightStart = 0;
   lcd_show_ip();
 }
 
 void loop() {
   bool tmp;
+  check_lcd_light();
   switch(sys_state) {
     case ERROR_WIFI:
     case ERROR_RFID:
     case ERROR_RTC:
+    case ERROR_INVALID:
       show_error(sys_state);
       break;
     case READY:
@@ -230,9 +228,11 @@ byte is_known_card(byte card_id[]) {
  * positions are from 0 to 199
  */
 void store_card(struct card_block card, byte position) {
-  int pos = 5 * (position + 1);
-  if ( pos < 200) {  //if we are not full capacity
+  int pos = (5 * position) + 1;
+  if ( position < 200) {  //if we are not full capacity
     EEPROM_writeBlock(pos, card); //store the card
+  } else {
+    sys_state = ERROR_INVALID;
   }
 }
 
@@ -253,11 +253,7 @@ void send_to_server() {
 }
 
 void alertUnknown() {
-  lcd.clear();
-  lcd.home();
-  lcd.print(F("Acceso negado,"));
-  lcd.setCursor(0,1);
-  lcd.print(F("Informando..."));
+  lcd_show_message(F("Acceso negado,  Informando..."));
   for (uint8_t i=0; i<3; i++) {
     digitalWrite(BUZZER, HIGH);
     delay(150);
@@ -273,7 +269,7 @@ void lcd_show_ready() {
   sprintf(dateString, "%02d/%02d/%04d %02d:%02d",tstamp.day(),tstamp.month(),tstamp.year(),tstamp.hour(),tstamp.minute());
   lcd.print(dateString);
   lcd.setCursor(0,1);
-  lcd.println(F("Esperando..."));
+  lcd.print(F("Esperando..."));
 }
 
 void lcd_show_ip() {
@@ -290,19 +286,40 @@ void lcd_show_ip() {
 }
 
 void lcd_show_allowed() {
-  lcd.clear();
-  lcd.setCursor(1,1);
-  lcd.println(F("Acceso permitido"));
+  lcd_show_message(F("Acceso permitido"));
 }
 
 void lcd_show_wait() {
-  lcd.clear();
-  lcd.println(F("Espere por favor..."));
+  lcd_show_message(F("Espere por favor..."));
 }
 
 void lcd_show_go() {
+  lcd_show_message(F("Avance..."));
+}
+
+void lcd_show_message(String message) {
+  byte len = 0;
   lcd.clear();
-  lcd.println(F("Avance..."));
+  lcd.backlight();
+  backlightStart = millis();
+  String msg = message;
+  if (msg.length() > 16) {
+    lcd.setCursor(0,0);
+    lcd.print(msg.substring(0,16));
+    lcd.setCursor(0,1);
+    lcd.print(msg.substring(16, msg.length()));
+  } else {
+    lcd.print(msg);
+  }
+}
+
+void check_lcd_light() {
+  if (backlightStart > 0) {
+    if (millis() - backlightStart > LIGHT_DURATION) {
+      lcd.noBacklight();
+      backlightStart = 0;
+    }
+  }
 }
 
 #ifdef DEBUG
@@ -318,9 +335,7 @@ void serialOptions() {
     case 'S':
       Serial.readBytes(readed,2);
       Serial.println("Scan");
-      readed[0] *= sizeof(card_block);
-      readed[0] ++;
-      //rf_store_card(readed);
+      debug_store_card(readed);
       Serial.println("Ready");
       break;
     case 'D':
@@ -337,5 +352,25 @@ void serialOptions() {
       break;
   }
 }
-#endif
 
+void debug_store_card(byte *card_data) {
+  bool finish = false;
+  bool timeout = false;
+  long tstart;
+  tstart = millis();
+  struct card_block card;
+  while (!finish || timeout)
+  {
+    if (millis() - tstart > MAX_CARD_WAIT_TIME)
+    {
+      timeout = true;
+    }
+    if (getID()) {
+      card.card_number = card_data[1];
+      memcpy(card.card_uid, readCard, 4);
+      store_card(card, card_data[0]);
+      finish = true;
+    }
+  }
+}
+#endif
