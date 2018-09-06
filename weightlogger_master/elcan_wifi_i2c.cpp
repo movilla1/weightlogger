@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <string.h>
 #include "elcan_wifi_i2c.h"
+#include <Wire.h>
 /**
  * This library requires the Wire library included and initialized.
  * @author: Mario O. Villarroel
@@ -12,9 +13,10 @@ ElcanWifiI2C::ElcanWifiI2C() {
   _error = 0;
 }
 
-void ElcanWifiI2C::begin(byte addr) {
+bool ElcanWifiI2C::begin(int addr) {
   String init_string;
   byte count;
+  Wire.begin();
   _i2c_addr = addr;
   Wire.beginTransmission(_i2c_addr);
   Wire.write("I");
@@ -29,13 +31,14 @@ void ElcanWifiI2C::begin(byte addr) {
   if (!init_string.equals("INIOK")) {
     _error = 100;
   }
+  return (_error == 0);
 }
 
 void ElcanWifiI2C::set_server_ip(char *ip) {
   bool finish = false;
   byte pos = 0;
   Wire.beginTransmission(_i2c_addr);
-  Wire.write(F("T"));
+  Wire.write("T");
   while(!finish) {
     Wire.write(ip[pos]);
     if (ip[pos]==0x00) {
@@ -46,7 +49,7 @@ void ElcanWifiI2C::set_server_ip(char *ip) {
   Wire.endTransmission();
 }
 
-String ElcanWifiI2C::get_ip_address() {
+String ElcanWifiI2C::get_ip() {
   String result;
   byte pos = 0;
   Wire.beginTransmission(_i2c_addr);

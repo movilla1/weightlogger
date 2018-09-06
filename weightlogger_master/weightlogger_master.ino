@@ -6,6 +6,7 @@
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
 #include <LiquidCrystal_I2C.h>
 
+#include "elcan_wifi_i2c.h"
 #include "eepromblock.h"
 #include "definitions.h"
 #include "globals.h"
@@ -38,7 +39,11 @@ void setup() {
   sys_state = READY;
   whos_entering = 0;
   backlightStart = 0;
-  lcd_show_ip();
+  if (wifi.begin(WIFI_I2C_ADDR)) {
+    lcd_show_ip();
+  } else {
+    sys_state = ERROR_WIFI;
+  }
 }
 
 void loop() {
@@ -56,9 +61,6 @@ void loop() {
       if (getID()) {
         sys_state = READ_RFID;
       }
-      /*if (wifi.available()){
-        sys_state = DATA_LINK;
-      }*/
 #ifdef DEBUG
       if (Serial.available()){
         serialOptions();
@@ -93,6 +95,7 @@ void loop() {
     case OPEN_BARRIER:
       lcd_show_go();
       open_barrier();
+      lcd_light_on();
       sys_state = READY;
       break;
     case UNKNOWN_CARD:
@@ -260,6 +263,7 @@ void alertUnknown() {
     digitalWrite(BUZZER, LOW);
     delay(150);
   }
+
 }
 
 void lcd_show_ready() {
@@ -273,16 +277,9 @@ void lcd_show_ready() {
 }
 
 void lcd_show_ip() {
-  /*wifi.write("AT+CIFSR");
-  String receivedIP;
-  String result;
-  receivedIP = wifi.readStringUntil('\n');
-  result = wifi.readStringUntil('\n');
-  if (result == "OK") {
-    receivedIP += 8; //SKIP "+ CIFSR:"
-  }
-  lcd.setCursor(1,1);
-  lcd.println(receivedIP);*/
+  String ip = wifi.get_ip();
+  lcd_show_message(ip);
+  delay(2000); //2 seconds delay to read the ip
 }
 
 void lcd_show_allowed() {
@@ -320,6 +317,11 @@ void check_lcd_light() {
       backlightStart = 0;
     }
   }
+}
+
+void lcd_light_on() {
+  lcd.backlight();
+  backlightStart = millis();
 }
 
 #ifdef DEBUG

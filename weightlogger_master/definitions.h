@@ -42,3 +42,5 @@
  * RF Protocol Constants
  */
 #define MAX_CARD_WAIT_TIME 10000 //10 seconds
+
+#define WIFI_I2C_ADDR 0x18

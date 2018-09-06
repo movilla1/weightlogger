@@ -5,15 +5,15 @@
 
 class ElcanWifiI2C {
   private:
-    byte _i2c_addr;
+    int _i2c_addr;
     byte _error;
   public:
     ElcanWifiI2C();
-    void begin(byte i2c_addr);
-    String get_ip_address();
+    bool begin(int addr);
+    String get_ip();
     bool is_error();
     void set_server_ip(char *ip);
-    int write(String);
+    int write(String data);
 };
 #define _ELCAN_WIFI_I2C;
 #endif
