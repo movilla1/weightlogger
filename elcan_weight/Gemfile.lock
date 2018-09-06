@@ -228,6 +228,7 @@ DEPENDENCIES
   friendly_id
   jbuilder (~> 2.0)
   jquery-rails
+  kaminari
   rails (= 4.2.10)
   sass-rails (~> 5.0)
   sdoc (~> 0.4.0)

@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  peso: 1.5
+  camion_id: 
+  eje: 1
+  completo: false
+
+two:
+  peso: 1.5
+  camion_id: 
+  eje: 1
+  completo: false

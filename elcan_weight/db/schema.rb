@@ -11,7 +11,30 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180905130047) do
+ActiveRecord::Schema.define(version: 20180905222458) do
+
+  create_table "active_admin_comments", force: :cascade do |t|
+    t.string   "namespace"
+    t.text     "body"
+    t.integer  "resource_id"
+    t.string   "resource_type"
+    t.integer  "author_id"
+    t.string   "author_type"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+  end
+
+  add_index "active_admin_comments", ["author_type", "author_id"], name: "index_active_admin_comments_on_author_type_and_author_id"
+  add_index "active_admin_comments", ["namespace"], name: "index_active_admin_comments_on_namespace"
+  add_index "active_admin_comments", ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource_type_and_resource_id"
+
+  create_table "camiones", force: :cascade do |t|
+    t.string   "patente"
+    t.date     "fecha_compra"
+    t.float    "capacidad"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+  end
 
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string   "slug",                      null: false
@@ -25,6 +48,36 @@ ActiveRecord::Schema.define(version: 20180905130047) do
   add_index "friendly_id_slugs", ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
   add_index "friendly_id_slugs", ["sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_id"
   add_index "friendly_id_slugs", ["sluggable_type"], name: "index_friendly_id_slugs_on_sluggable_type"
+
+  create_table "pesajes", force: :cascade do |t|
+    t.float    "peso"
+    t.integer  "camion_id"
+    t.integer  "eje"
+    t.boolean  "completo"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "pesajes", ["camion_id"], name: "index_pesajes_on_camion_id"
+
+  create_table "roles", force: :cascade do |t|
+    t.integer  "usuario_id"
+    t.integer  "role"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "roles", ["usuario_id"], name: "index_roles_on_usuario_id"
+
+  create_table "tags", force: :cascade do |t|
+    t.string   "tag_id"
+    t.integer  "usuario_id"
+    t.boolean  "active"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "tags", ["usuario_id"], name: "index_tags_on_usuario_id"
 
   create_table "usuarios", force: :cascade do |t|
     t.string   "nombre"
