@@ -67,6 +67,10 @@ void receiveEvent(int count) {
       case 'T': //transmit data to Server
         transmit_to_server();
         break;
+      case 'I':
+        dataToSend = 5;
+        memcpy(dataBuffer,F("INIOK"), 5);
+        break;
     }
   }
 }
