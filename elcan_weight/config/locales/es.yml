@@ -1,0 +1,5 @@
+es:
+  time:
+    formats:
+      long: "%d/%m/%Y %H:%M:%S"
+      short: "%d/%m/%y %H:%M"
