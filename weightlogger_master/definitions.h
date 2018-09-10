@@ -20,8 +20,8 @@
  * Ports used
  */
 #define WPS_BUTTON 2
-#define BARRERA 3
-#define BUZZER 4
+#define BUZZER 3
+#define BARRERA 4
 #define WIFI_RX 5
 #define WIFI_TX 6
 #define RFID_RST  9    //Pin 9 para el reset del RC522

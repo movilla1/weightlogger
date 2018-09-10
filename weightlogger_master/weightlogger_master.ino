@@ -1,5 +1,6 @@
 #define DEBUG true
 //#define WITH_WEIGHT true
+//#define WITH_WIFI true
 #include <Wire.h>
 #include <SPI.h>
 #include <RTClib.h>
@@ -29,21 +30,24 @@ void setup() {
 #ifdef DEBUG
   Serial.begin(57600);
 #endif
-  //wifi.begin(115200);     // fire the wifi serial
   SPI.begin();           // MFRC522 Hardware uses SPI protocol
   Wire.begin();
   lcd.begin(16,2);
   initialize_rtc();
   initialize_rfid();
+#ifdef WITH_WIFI
   initialize_wifi();
+#endif
   sys_state = READY;
   whos_entering = 0;
   backlightStart = 0;
+#ifdef WITH_WIFI
   if (wifi.begin(WIFI_I2C_ADDR)) {
     lcd_show_ip();
   } else {
     sys_state = ERROR_WIFI;
   }
+#endif
 }
 
 void loop() {
@@ -83,7 +87,9 @@ void loop() {
       sys_state = WRITE_RECORD;
       break;
     case WRITE_RECORD:
+#ifdef WITH_WIFI    
       send_to_server();
+#endif
       timerStarted = rtc.now();
       sys_state = TIMED_WAIT;
       break;
@@ -139,6 +145,7 @@ bool check_card_and_act() {
   if (ret > 0) {
     sys_state = READ_RTC;
     whos_entering = ret;
+    do_known_beeps();
   } else {
     sys_state = UNKNOWN_CARD;
   }
@@ -277,9 +284,13 @@ void lcd_show_ready() {
 }
 
 void lcd_show_ip() {
+#ifdef WITH_WIFI  
   String ip = wifi.get_ip();
   lcd_show_message(ip);
   delay(2000); //2 seconds delay to read the ip
+#else
+  lcd_show_message("Initialized");
+#endif
 }
 
 void lcd_show_allowed() {
@@ -322,6 +333,15 @@ void check_lcd_light() {
 void lcd_light_on() {
   lcd.backlight();
   backlightStart = millis();
+}
+
+void do_known_beeps() {
+  for (byte b=0; b<2; b++) {
+    digitalWrite(BUZZER, HIGH);
+    delay(80);
+    digitalWrite(BUZZER, LOW);
+    delay(80);
+  }
 }
 
 #ifdef DEBUG
