@@ -16,10 +16,10 @@ class ApplicationController < ActionController::Base
   private
 
   def layout_by_resource
-    if devise_controller?
-      "devise"
-    else
+    if current_usuario.present?
       "application"
+    else
+      "empty"
     end
   end
 
