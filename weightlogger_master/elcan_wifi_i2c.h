@@ -10,6 +10,7 @@ class ElcanWifiI2C {
   public:
     ElcanWifiI2C();
     bool begin(int addr);
+    int available();
     String get_ip();
     bool is_error();
     void set_server_ip(char *ip);

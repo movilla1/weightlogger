@@ -71,6 +71,9 @@ void receiveEvent(int count) {
         dataToSend = 5;
         memcpy(dataBuffer,F("INIOK"), 5);
         break;
+      case 'A':
+        //This gets the known tags list.
+        break;
     }
   }
 }

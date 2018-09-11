@@ -70,6 +70,9 @@ void loop() {
         serialOptions();
       }
 #endif
+      if (wifi.available()) {
+        sys_state = DATA_LINK;
+      }
       break;
     case READ_RFID:
       check_card_and_act(); //checks the card and if its valid, it starts the sequence
@@ -262,8 +265,13 @@ void send_to_server() {
   //TODO : Implement.
 }
 
+void send_intrussion_attemp_to_server(){
+  //TODO : Implement
+}
+
 void alertUnknown() {
   lcd_show_message(F("Acceso negado,  Informando..."));
+  send_intrussion_attemp_to_server();
   for (uint8_t i=0; i<3; i++) {
     digitalWrite(BUZZER, HIGH);
     delay(150);

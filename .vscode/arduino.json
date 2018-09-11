@@ -1,5 +1,6 @@
 {
-    "board": "arduino:avr:uno",
-    "sketch": "weightlogger_master/weightlogger_master.ino",
-    "port": "/dev/ttyACM0"
+    "board": "arduino:avr:atmegang",
+    "sketch": "elcan_i2c_serial/elcan_i2c_serial.ino",
+    "port": "/dev/ttyACM0",
+    "configuration": "cpu=atmega8"
 }

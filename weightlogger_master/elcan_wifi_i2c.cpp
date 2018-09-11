@@ -79,3 +79,7 @@ int ElcanWifiI2C::write(String data) {
   Wire.endTransmission();
   return pos;
 }
+
+int ElcanWifiI2C::available() {
+  return Wire.available();
+}
