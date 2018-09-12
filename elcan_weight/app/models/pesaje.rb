@@ -1,3 +1,3 @@
 class Pesaje < ActiveRecord::Base
-  belongs_to :camion
+  belongs_to :truck
 end

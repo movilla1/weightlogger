@@ -1,5 +1,5 @@
 class Camion < ActiveRecord::Base
-  has_many :usuarios
-  self.table_name = "camiones"
+  has_many :users
+  self.table_name = "trucks"
 
 end

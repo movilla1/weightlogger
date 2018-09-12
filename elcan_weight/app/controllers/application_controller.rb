@@ -16,7 +16,7 @@ class ApplicationController < ActionController::Base
   private
 
   def layout_by_resource
-    if current_usuario.present?
+    if current_user.present?
       "application"
     else
       "empty"

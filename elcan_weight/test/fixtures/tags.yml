@@ -2,10 +2,10 @@
 
 one:
   tag_id: MyString
-  usuario_id: 
+  user_id: 
   active: false
 
 two:
   tag_id: MyString
-  usuario_id: 
+  user_id: 
   active: false

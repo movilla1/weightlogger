@@ -1,4 +1,4 @@
-class PesajeController < ApplicationController
+class WeightController < ApplicationController
   def new
   end
 
@@ -11,11 +11,11 @@ class PesajeController < ApplicationController
     time_part = data[1, 4]
     weight = data[5, 12]
     device = data[13]
-    usuario = Usuario.find_tag(tag_id: tag_id)
-    return false if usuario.blank?
-    tmp_camion = usuario.camion
-    camion_id = tmp_camion.id
-    Pesaje.create(camion_id: camion_id, created_at: time_part,
+    user = User.find_tag(tag_id: tag_id)
+    return false if user.blank?
+    tmp_truck = user.truck
+    truck_id = tmp_truck.id
+    Weight.create(truck_id: truck_id, created_at: time_part,
                   eje: device, peso: weight)
     render json: 'OK', status: 200
   end
