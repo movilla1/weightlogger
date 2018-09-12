@@ -28,14 +28,6 @@ ActiveRecord::Schema.define(version: 20180907125430) do
   add_index "active_admin_comments", ["namespace"], name: "index_active_admin_comments_on_namespace"
   add_index "active_admin_comments", ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource_type_and_resource_id"
 
-  create_table "trucks", force: :cascade do |t|
-    t.string   "patente"
-    t.date     "fecha_compra"
-    t.float    "capacidad"
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
-  end
-
   create_table "friendly_id_slugs", force: :cascade do |t|
     t.string   "slug",                      null: false
     t.integer  "sluggable_id",              null: false
@@ -48,17 +40,6 @@ ActiveRecord::Schema.define(version: 20180907125430) do
   add_index "friendly_id_slugs", ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
   add_index "friendly_id_slugs", ["sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_id"
   add_index "friendly_id_slugs", ["sluggable_type"], name: "index_friendly_id_slugs_on_sluggable_type"
-
-  create_table "weights", force: :cascade do |t|
-    t.float    "peso"
-    t.integer  "truck_id"
-    t.integer  "eje"
-    t.boolean  "completo"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  add_index "weights", ["truck_id"], name: "index_weights_on_truck_id"
 
   create_table "roles", force: :cascade do |t|
     t.integer  "user_id"
@@ -78,6 +59,14 @@ ActiveRecord::Schema.define(version: 20180907125430) do
   end
 
   add_index "tags", ["user_id"], name: "index_tags_on_user_id"
+
+  create_table "trucks", force: :cascade do |t|
+    t.string   "license"
+    t.date     "purchased"
+    t.float    "capacity"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "users", force: :cascade do |t|
     t.string   "nombre"
@@ -102,5 +91,16 @@ ActiveRecord::Schema.define(version: 20180907125430) do
   add_index "users", ["email"], name: "index_users_on_email", unique: true
   add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   add_index "users", ["username"], name: "index_users_on_username", unique: true
+
+  create_table "weights", force: :cascade do |t|
+    t.float    "weight"
+    t.integer  "truck_id"
+    t.integer  "axis"
+    t.boolean  "complete"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "weights", ["truck_id"], name: "index_weights_on_truck_id"
 
 end

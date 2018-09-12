@@ -1,9 +1,9 @@
-class WeightController < ApplicationController
-  def new
-  end
+# frozen_string_literal: true
 
-  def create
-  end
+class WeightController < ApplicationController
+  def new; end
+
+  def create; end
 
   def create_from_rfid
     data = params[:data]

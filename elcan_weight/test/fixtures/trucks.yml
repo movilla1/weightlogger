@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  license: MyString
+  purchased: 2018-09-05
+  capacity: 1.5
+
+two:
+  license: MyString
+  purchased: 2018-09-05
+  capacity: 1.5

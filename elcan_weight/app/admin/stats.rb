@@ -2,6 +2,6 @@
 
 ActiveAdmin.register_page I18n.t('Stats') do
   content do
-    para Stats will show here
+    para I18n.t 'stats_will_show_here'
   end
 end
