@@ -3,3 +3,59 @@ es:
     formats:
       long: "%d/%m/%Y %H:%M:%S"
       short: "%d/%m/%y %H:%M"
+  activerecord:
+    models:
+      truck:
+        one: "Camion"
+        other: "Camiones"
+      weight:
+        one: "Pesaje"
+        other: "Pesajes"
+      user:
+        one: "Usuario"
+        other: "Usuarios"
+    attributes:
+      user: 
+        created_at: "Creado"
+        updated_at: "Actualizado"
+        user: "Usuario"
+        trucks: "Camiones"
+        username: "nombre de usuario"
+        encrypted_password: "Clave cifrada"
+        reset_password_sent_at: "Reinicio de clave enviado"
+        last_sign_in_at: "Ultimo ingreso"
+        last_sign_in_ip: "Ultimo IP ingresado"
+        current_sign_in_ip: "IP Inicio Actual"
+      weight:
+        truck: "Camion"
+        weight: "Peso"
+        axis: "Eje"
+        created_at: "Creado"
+        updated_at: "Actualizado"
+      tag:
+        user: "Usuario"
+        active: "Activo"
+        created_at: "Creado"
+        updated_at: "Actualizado"
+      role:
+        user: "Usuario"
+        role: "Rol"
+        created_at: "Creado"
+        updated_at: "Actualizado"
+      truck:
+        users: "Usuarios"
+        license: "Patente"
+        purchased: "Comprado"
+        capacity: "Capacidad"
+        created_at: "Creado"
+        updated_at: "Actualizado"
+  stats: "Estadísticas"
+  truck: "Camion"
+  trucks: "Camiones"
+  comments: "Comentarios"
+  users: "Usuarios"
+  stats_will_show_here: "Aquí estarán las estadísticas."
+  active: "Activo"
+  online_users: "Usuarios Activos"
+  active_trucks: "Camiones Activos"
+  total: "Total"

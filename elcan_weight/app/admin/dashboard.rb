@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ActiveAdmin.register_page I18n.t('Dashboard') do
+ActiveAdmin.register_page 'Dashboard' do
   menu priority: 1, label: proc { I18n.t('active_admin.dashboard') }
 
   content title: proc { I18n.t('active_admin.dashboard') } do
@@ -10,7 +10,28 @@ ActiveAdmin.register_page I18n.t('Dashboard') do
         small I18n.t('active_admin.dashboard_welcome.call_to_action')
       end
     end
-
+    columns do
+      column do
+        panel I18n.t("online_users") do
+          ul do
+            User.all.each do |user|
+              li link_to user.email, admin_user_path(user)
+            end
+          end
+          div class: "pull-right"
+            strong I18n.t "total" + ": #{User.all.count}"
+        end
+      end
+      column do
+        panel I18n.t("active_trucks") do
+          ul do
+            Truck.active.each do |truck|
+              li link_to truck.license, admin_truck_path(truck)
+            end
+          end
+        end
+      end
+    end
     # Here is an example of a simple dashboard with columns and panels.
     #
     # columns do

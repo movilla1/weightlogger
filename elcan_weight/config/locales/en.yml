@@ -20,4 +20,9 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
-  hello: "Hello world"
+  stats: "Stats"
+  truck: "Truck"
+  trucks: "Trucks"
+  comments: "Comments"
+  users: "Users"
+  stats_will_show_here: "Stats will show here."
