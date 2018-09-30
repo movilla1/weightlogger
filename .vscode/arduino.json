@@ -1,6 +1,6 @@
 {
     "board": "arduino:avr:atmegang",
-    "sketch": "elcan_i2c_serial/elcan_i2c_serial.ino",
+    "sketch": "weightlogger_wifi_i2c/weightlogger_wifi_i2c.ino",
     "port": "/dev/ttyACM0",
     "configuration": "cpu=atmega8"
 }

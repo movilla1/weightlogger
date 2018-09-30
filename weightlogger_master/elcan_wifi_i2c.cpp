@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <string.h>
 #include "elcan_wifi_i2c.h"
 #include <Wire.h>
 /**
@@ -14,7 +13,7 @@ ElcanWifiI2C::ElcanWifiI2C() {
 }
 
 bool ElcanWifiI2C::begin(int addr) {
-  String init_string;
+  char received[32];
   byte count;
   Wire.begin();
   _i2c_addr = addr;
@@ -25,10 +24,11 @@ bool ElcanWifiI2C::begin(int addr) {
   Wire.requestFrom(_i2c_addr, INITIALIZATION_STR_LEN);
   count = 0;
   while(Wire.available() && count < INITIALIZATION_STR_LEN) {
-    init_string.concat( Wire.read() );
+    received[count] = Wire.read();
     count ++;
   }
-  if (!init_string.equals("INIOK")) {
+  received[count] = 0x00;
+  if (strcmp(received, "INIOK")!=0) {
     _error = 100;
   }
   return (_error == 0);
@@ -49,18 +49,19 @@ void ElcanWifiI2C::set_server_ip(char *ip) {
   Wire.endTransmission();
 }
 
-String ElcanWifiI2C::get_ip() {
-  String result;
+char *ElcanWifiI2C::get_ip() {
+  char result[32];
   byte pos = 0;
   Wire.beginTransmission(_i2c_addr);
   Wire.write("G");
   Wire.endTransmission();
-  delay(20);
+  delay(200);
   Wire.requestFrom(_i2c_addr, IP_ADDRESS_LEN); 
   while (Wire.available() && pos < IP_ADDRESS_LEN){
-    result.concat(Wire.read());
+    result[pos] = Wire.read();
     pos++;
   }
+  result[pos] = 0x00;
   return result;
 }
 
@@ -68,12 +69,13 @@ bool ElcanWifiI2C::is_error() {
   return (_error > 0);
 }
 
-int ElcanWifiI2C::write(String data) {
+int ElcanWifiI2C::write(char *data) {
   int pos = 0;
+  int dataLen = strlen(data);
   Wire.beginTransmission(_i2c_addr);
   Wire.write("T");
-  while (pos < data.length()) {
-    Wire.write(data.charAt(pos));
+  while (pos < dataLen) {
+    Wire.write(data[pos]);
     pos++;
   }
   Wire.endTransmission();

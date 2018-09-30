@@ -11,10 +11,10 @@ class ElcanWifiI2C {
     ElcanWifiI2C();
     bool begin(int addr);
     int available();
-    String get_ip();
+    char *get_ip();
     bool is_error();
     void set_server_ip(char *ip);
-    int write(String data);
+    int write(char *data);
 };
 #define _ELCAN_WIFI_I2C;
 #endif

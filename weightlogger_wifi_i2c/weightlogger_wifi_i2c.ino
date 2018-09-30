@@ -1,106 +1,155 @@
 #include <Wire.h>
 #include <EEPROM.h>
+#include "constants.h"
+/**
+ * ESP Data gathered in debug:
+ * 
+ * Server: answers multiple lines, the most significant part is
+ *  +IPD,0,442:GET /SERVER?IP=192.168.025.102
+ *  +IPD,0,430:GET /ADDTAG?TG=00:00:00:00,250
+ * when we open a browser with /SERVER?IP=192.168.25.102, where
+ *  0 is the link identifier, 442 is the length received.
+ * 
+ * CIFSR Answers with multiple lines, sample:
+ * +CIFSR:STAIP,"192.168.25.10"
+ * +CIFSR:STAMAC,"84:f3:eb:4c:cf:73"
+ *
+ * OK
+ * We must process the STAIP part, ignore the rest.
+ **/
 
-#define IP_START_POS_IN_RESPONSE 7
-#define IP_START_ADDR 0x00
-#define WIFI_TIMEOUT 200 //milliseconds timeout for wifi
-#define WPS_TIMEOUT 4000 // 4 seconds after turning on wps we turn it off
-#define BUFFER_SIZE 32
-
-#define SETUP_BTN 3
-#define LED 8
-#define I2C_ADDR 0x18
-
-#define READY 0
-#define WPS_SETUP 1
-#define I2C_GET 2
-#define ERROR_WIFI 4
-#define WPS_ON 8
 
 byte sysState;
-byte dataToSend, dataToWifi;
-char dataBuffer[BUFFER_SIZE];
-char serverIP[16]; //server ip max: 255.255.255.255 (kept in ascii format) 15 characters + 0x00 string end
+char wireBuffer[BUFFER_SIZE];
+char serverIP[IP_ADDR_SIZE+1]; //server ip max: 255.255.255.255 (kept in ascii format) 15 characters + 0x00 string end
+char ipdBuffer[IPD_BUFFER_SIZE];
+char link; //for the wifi cipmux link identifier
+char pollData;
+
 void setup() {
   Wire.begin(I2C_ADDR);
   pinMode(LED, OUTPUT);
   pinMode(SETUP_BTN, INPUT_PULLUP);
+  digitalWrite(LED, HIGH);
   Wire.onReceive(receiveEvent);
   Wire.onRequest(requestService);
   attachInterrupt(1, startSetup, FALLING);
   Serial.begin(115200); //start the serial interface
-  initialize_wifi();
+  delay(5000); //wait for the wifi interface to finish the initial settings/bootload.
   sysState = READY;
-  dataToSend = dataToWifi = 0;
+  initialize_wifi();
   memset(serverIP, 0, sizeof(serverIP));
-  eeprom_read_server_ip();
+  memset(ipdBuffer, 0, sizeof(ipdBuffer));
+  pollData = 'E';
+  eepromReadServerIp();
+  digitalWrite(LED, LOW);
 }
 
 void loop() {
   long tStart, tElapsed;
+  byte pos = 0;
+  char t;
   switch(sysState) {
     case WPS_SETUP:
       send_wifi_wps_setup();
       tStart = millis();
+      digitalWrite(LED, HIGH);
       break;
     case WPS_ON:
       tElapsed = millis() - tStart;
       if (tElapsed > WPS_TIMEOUT) {
         send_wifi_wps_stop();
+        digitalWrite(LED, LOW);
       }
     case ERROR_WIFI:
       showError();
       break;
+    case SEND_IP_ADDRESS:
+    case SEND_SERVER_IP:
+    case SEND_INIT_DATA:
+    case SEND_POLL_DATA:
+      break;
+    default:
+      sysState = READY;
+      break;
+  }
+  if (Serial.available() && sysState==READY) { //WIFI is sending something for us:
+    while (Serial.available()) {
+      t = Serial.read();
+      ipdBuffer[pos] = t;
+      pos++;
+      pos %= IPD_BUFFER_SIZE; //circular buffering
+      if (t=='\n') {
+        processIPD();
+      }
+    }
   }
 }
 
 void receiveEvent(int count) {
+  bool clearBuffer = false;
   if (Wire.available()) {
     char cmd = Wire.read(); // read the command code;
     switch (cmd) {
       case 'G': //get IP address
-        get_ip_address();
+        sysState = SEND_IP_ADDRESS;
+        clearBuffer = true;
         break;
-      case 'S': //Set Server IP
-        set_server_ip();
+      case 'S': //Get Server IP
+        sysState = SEND_SERVER_IP;
+        clearBuffer = true;
         break;
       case 'T': //transmit data to Server
         transmit_to_server();
         break;
       case 'I':
-        dataToSend = 5;
-        memcpy(dataBuffer,F("INIOK"), 5);
+        sysState = SEND_INIT_DATA;
+        clearBuffer = true;
         break;
-      case 'A':
-        //This gets the known tags list.
+      case 'P':
+        sysState = SEND_POLL_DATA;
+        clearBuffer = true;
         break;
+    }
+  }
+  if (clearBuffer) {
+    for (char tmp = 1; tmp < count; tmp++) { //clear the sent data, we only use 1 char as command.
+      char t = Wire.read();
     }
   }
 }
 
 void requestService() {
-  if (dataToSend > 0) {
-    Wire.write(dataBuffer);
-    dataToSend = 0 ;
+  switch(sysState) {
+    case SEND_POLL_DATA:
+      Wire.write(pollData);
+      break;
+    case SEND_INIT_DATA:
+      Wire.write("INIOK");
+      pollData = 'E';
+      break;
+    case SEND_SERVER_IP:
+      getServerIP();
+      Wire.write(serverIP);
+      pollData = 'E';
+      break;
+    case SEND_IP_ADDRESS:
+      get_ip_address();
+      Wire.write(wireBuffer);
+      pollData = 'E';
+      break;
+    default:
+      Wire.write(0);
   }
+  sysState = READY;
 }
 
 void startSetup() {
-  sysState = WPS_SETUP;
-}
-
-void initialize_wifi() {
-  bool timeout;
-  long tstart = millis();
-  while(Serial.available() && !timeout) {
-    char tmp = Serial.read(); //just eat the bytes, ignore content for now.
-    timeout = ((millis() - tstart) < WIFI_TIMEOUT);
-  }
-  if (timeout) {
-    sysState = ERROR_WIFI;
+  delay(400);
+  if (digitalRead(SETUP_BTN)==0) { //if the button stays low for 400mS
+    sysState = WPS_SETUP;
   } else {
-    Serial.println(F("AT+CWAUTOCONN=1"));
-    empty_serial_buffer();
+    sysState = READY;
   }
 }
 
@@ -111,22 +160,6 @@ void showError() {
   delay(150);
 }
 
-void send_wifi_wps_setup() {
-  Serial.println(F("AT+CWMODE_DEF=1"));
-  Serial.println(F("AT+WPS=1")); //start WPS
-  char tmp = Serial.read();
-  if (tmp=="O") {
-    sysState = WPS_ON;
-  } else {
-    sysState = ERROR_WIFI;
-  }
-  empty_serial_buffer();
-}
-
-void send_wifi_wps_stop() {
-  Serial.println(F("AT+WPS=0")); //stop WPS;
-}
-
 void empty_serial_buffer() {
   char tmp;
   while (Serial.available()) {
@@ -134,79 +167,7 @@ void empty_serial_buffer() {
   }
 }
 
-void get_ip_address() {
-  byte count = 0;
-  char t;
-  Serial.println(F("AT+CIFSR"));
-  while(Serial.available()) {
-    count++;
-    if (count > IP_START_POS_IN_RESPONSE) { //
-      t = Serial.read();
-      dataBuffer[count - IP_START_POS_IN_RESPONSE] = t;
-    }
-  }
-  dataToSend = count - IP_START_POS_IN_RESPONSE;
-  dataBuffer[dataToSend] = 0x00; //end string at the last position.
-}
-
-void set_server_ip() {
-  char tmp;
-  byte pos = 0;
-  bool exit = false;
-  while(Wire.available() && !exit) {
-    tmp = Wire.read();
-    if (tmp=='\r') {
-      exit = true;
-    } else {
-      EEPROM.write(IP_START_ADDR + pos, tmp);
-      serverIP[pos] = tmp;
-      pos ++;
-      pos %= 15; // IP Address must be 15 characters or less
-    }
-  }
-}
-
-void transmit_to_server() {
-  char t;
-  //char command[]=F("AT+CIPSENDEX=512"); //512 bytes per packet, max.
-  start_tcp_to_server();
-  Serial.println(F("AT+CIPSENDEX=512"));
-  send_base_http_request();
-  Serial.println(F(" "));
-  Serial.print(F("data="));
-  while(Wire.available()) {
-    t = Wire.read();
-    Serial.write(t);
-  }
-  Serial.println(F(" "));
-  Serial.write(0x00); //end transmission.
-  stop_tcp_to_server();
-  empty_serial_buffer(); //throw away the response (and hope for the best)
-}
-
-void send_base_http_request() {
-  Serial.println(F("POST /pesaje/create_from_rfid HTTP/1.1"));
-  Serial.println(F("User-Agent: Mozilla/5.0 (Weightlogger; es-AR; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5\r\n\
-  Accept: text/html, application/xml, application/json;q=0.9;q=0.8;q=0.9\r\n\
-  Accept-Language: en-us,en;q=0.5\r\n\
-  Accept-Charset: ISO-8859-1;q=0.7\r\n\
-  Content-Length: 64\r\n\
-  Content-Type: application/x-www-form-urlencoded\r\n"));
-}
-
-void start_tcp_to_server() {
-  char st_command_tail [] =  "\",80";
-  String st_command = F("AT+CIPSTART=\"TCP\",\"");
-  st_command += serverIP;
-  st_command += st_command_tail;
-  Serial.println(st_command);
-}
-
-void stop_tcp_to_server() {
-  Serial.println(F("AT+CIPCLOSE=5"));//close all connections
-}
-
-void eeprom_read_server_ip() {
+void eepromReadServerIp() {
   char tmp;
   for (byte i=0; i < sizeof(serverIP)-1; i++) {
     tmp = EEPROM.read(IP_START_ADDR+i);
@@ -214,4 +175,9 @@ void eeprom_read_server_ip() {
       serverIP[i] = tmp;
     }
   }
+}
+
+void getServerIP() {
+  pollData = 'S';
+  eepromReadServerIp();
 }

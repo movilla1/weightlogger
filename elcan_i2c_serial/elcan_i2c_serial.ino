@@ -4,10 +4,12 @@
 #define SETUP_BTN 3
 #define LED 8
 #define I2C_ADDR 0x18
-#define BUFFER_SIZE 32
+#define BUFFER_SIZE 256
 
 char dataBuffer[BUFFER_SIZE];
-byte pos;
+byte writePos;
+byte readPos;
+
 void setup() {
   Wire.begin(I2C_ADDR);
   pinMode(LED, OUTPUT);
@@ -16,15 +18,17 @@ void setup() {
   Wire.onRequest(requestService);
   Serial.begin(115200); //start the serial interface
   digitalWrite(LED, HIGH);
-  pos = 0;
+  writePos = 0;
+  readPos = 0;
 }
 
 void loop() {
   if (Serial.available()) {
     digitalWrite(LED,LOW);
-    while(Serial.available() && pos < BUFFER_SIZE) {
-      dataBuffer[pos] = Serial.read();
-      pos++;
+    while(Serial.available()) {
+      dataBuffer[writePos] = Serial.read();
+      writePos++;
+      writePos %= BUFFER_SIZE; //circular buffer
     }
     digitalWrite(LED, HIGH);
   }
@@ -40,8 +44,13 @@ void receiveEvent(int count) {
 
 void requestService() {
   byte tmp = 0;
-  while(tmp < pos) {
-    Wire.write(dataBuffer[tmp]);
-    tmp ++;
+  while(tmp < 32 && readPos < writePos) {
+    Wire.write(dataBuffer[readPos]);
+    readPos++;
+    tmp++;
+  }
+  if (readPos >= writePos ) {
+    memset(dataBuffer, 0, sizeof(dataBuffer));
+    readPos = 0;
   }
 }
