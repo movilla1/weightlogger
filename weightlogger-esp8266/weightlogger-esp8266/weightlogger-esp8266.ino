@@ -89,6 +89,9 @@ void send_status() {
     case WL_DISCONNECTED:
       Serial.println("NN");
       break;
+    default:
+      Serial.println("UN");
+      break;
   }
 }
 

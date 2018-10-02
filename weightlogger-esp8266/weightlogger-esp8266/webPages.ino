@@ -9,7 +9,7 @@ void handleLogin() {
   if (server.hasArg("DISCONNECT")) {
     server.sendHeader("Location", "/login");
     server.sendHeader("Cache-Control", "no-cache");
-    server.sendHeader("Set-Cookie", "ESPSESSIONID=0");
+    server.sendHeader("Set-Cookie", "ELCANWLSV10=0");
     server.send(301);
     return;
   }
@@ -17,13 +17,13 @@ void handleLogin() {
     if (server.arg("username") == "admin" &&  server.arg("upwd") == "elcanAdmin!") {
       server.sendHeader("Location", "/");
       server.sendHeader("Cache-Control", "no-cache");
-      server.sendHeader("Set-Cookie", "ESPSESSIONID=1");
+      server.sendHeader("Set-Cookie", "ELCANWLSV10=SU1");
       server.send(301);
       return;
     }
     msg = "<div class=\"alert alert-danger\" role=\"alert\">Wrong username/password! try again.</div>\n";
   }
-  String content = getFromSpiffs("/index.html");
+  String content = getFromSpiffs("/login.html");
   
   const String ending = "</div></body></html>";
   server.send(200, "text/html", content + msg + ending);
@@ -112,13 +112,16 @@ bool checkAuth() {
 bool is_authentified() {
   if (server.hasHeader("Cookie")) {
     String cookie = server.header("Cookie");
-    if (cookie.indexOf("ESPSESSIONID=1") != -1) {
+    if (cookie.indexOf("ELCANWLSV10=SU1") != -1) {
       return true;
     }
   }
   return false;
 }
 
+/**
+ * Use this to send images or big files to the client
+ */
 bool loadFromSpiffs(String path){
   String dataType = "text/plain";
   if(path.endsWith("/")) path += "index.htm"; 
@@ -134,11 +137,16 @@ bool loadFromSpiffs(String path){
   return true;
 }
 
-String getFromSpiffs(const String file) {
+/**
+ * Do not use this function to load images, only for html or txt to render to the client.
+ */
+String getFromSpiffs(const String file) { 
   String content = "";
+  char tmp;
   File dataFile = SPIFFS.open(file.c_str(), "r");
   while(dataFile.available()) {
-    content += dataFile.read();
+    tmp = dataFile.read();
+    content.concat(tmp);
   }
   dataFile.close();
   return content;
