@@ -64,14 +64,6 @@ void loop() {
     case ERROR_WIFI:
       showError();
       break;
-    case SEND_IP_ADDRESS:
-    case SEND_SERVER_IP:
-    case SEND_INIT_DATA:
-    case SEND_POLL_DATA:
-      break;
-    default:
-      sysState = READY;
-      break;
   }
   if (Serial.available() && sysState==READY) { //WIFI is sending something for us:
     while (Serial.available()) {
@@ -83,6 +75,8 @@ void loop() {
         processIPD();
       }
     }
+  } else {
+    empty_serial_buffer();
   }
 }
 
