@@ -86,7 +86,7 @@ void handleTags() { //handle tags operations
   if (server.hasArg("tagid") && server.hasArg("position")) {
     String tagID = server.arg("tagid");
     String pos = server.arg("position");
-    tag_strings_to_array(tagID, position);
+    tag_strings_to_array(tagID, pos);
   }
   change_selecteds(SETUP_TAGS);
   String page = render ("/tags.html", "Tag Manager", selecteds, true);
@@ -140,7 +140,7 @@ void handleAjaxTags() {
   if (tagReady) {
     content = "{\"status\":\"TagReady\", \"tag\":\"";
     content += tag;
-    content += "\"}"
+    content += "\"}";
   } else {
     content = "{\"status\":\"empty\"}";
   }
@@ -161,15 +161,15 @@ void handleAjaxMessages() {
 void tag_strings_to_array(String id, String pos) {
   char tmp;
   char tag_pos = 0;
-  char pos = (char)pos.toInt();
-  for (int c=0; c < id.length; c += 2) {
+  char cpos = (char)pos.toInt();
+  for (int c=0; c < id.length(); c += 2) {
     tmp = id[c] > 0x39 ? (id[c] - 'A') * 16 : (id[c] - '0') * 16;
     tmp += id[c+1] > 0x39 ? (id[c+1] - 'A') : (id[c+1] - '0');
     tag[tag_pos] = tmp;
     tag_pos ++;
     tag_pos %= 4; //tag consists of only 4 bytes
   }
-  tag[4] = pos;
+  tag[4] = cpos;
   tag[5] = 0x00;
   tagReady = true;
 }

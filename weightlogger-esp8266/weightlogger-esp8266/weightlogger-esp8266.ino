@@ -94,7 +94,7 @@ void send_server_ip() {
 
 void send_status() {
   if (tagReady) {
-    serial.print("T");
+    Serial.print("T");
     return;
   }
   switch (WiFi.status()) {
