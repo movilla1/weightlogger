@@ -10,8 +10,12 @@ byte sysState;
 ESP8266WebServer server(8010);  //  port 8010 = web, own
 HTTPClient http;
 char selecteds[3] = {0,0,0};
+String message;
+bool tagReady;
+char tag[6];
 
 void setup() {
+  tagReady = false;
   String ssid = WiFi.SSID();
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -30,6 +34,7 @@ void setup() {
   server.on("/tags", handleTags);
   server.on("/ajax/server", handleAjaxServer);
   server.on("/ajax/tags", handleAjaxTags);
+  server.on("/ajax/msg", handleAjaxMessages);
   server.onNotFound(handleNotFound);
   //here the list of headers to be recorded
   const char * headerkeys[] = {"User-Agent", "Cookie"} ;
@@ -48,7 +53,9 @@ void loop() {
     cmd = Serial.read(); //commands are single chars
     switch (cmd) {
       case 'T':
-        //get Tag
+        Serial.println(tag);
+        tagReady = false;
+        memset(tag, 0, sizeof(tag)); //reset to 0
         break;
       case 'I':
         Serial.println(WiFi.localIP());
@@ -86,15 +93,19 @@ void send_server_ip() {
 }
 
 void send_status() {
+  if (tagReady) {
+    serial.print("T");
+    return;
+  }
   switch (WiFi.status()) {
     case WL_CONNECTED:
-      Serial.println("OK");
+      Serial.println("O");
       break;
     case WL_DISCONNECTED:
-      Serial.println("NN");
+      Serial.println("N");
       break;
     default:
-      Serial.println("UN");
+      Serial.println("U");
       break;
   }
 }
@@ -106,7 +117,10 @@ bool transmit_to_server() {
   read_port_from_eeprom(port,sizeof(port));
   String server = "http://";
   server += ip;
-  server += port;
+  if (port[0]!=0xFF && port[0]!=0x00 && port[0]!='0') {
+    server += ":";
+    server += port;
+  }
   server += "/pesaje/create_from_rfid"; 
   http.begin(server);
   String dat="data=";
@@ -138,16 +152,15 @@ void read_port_from_eeprom(char *port, char len) {
 }
 
 void read_data_from_eeprom(char *dat, char len, int start_position) {
- for(char x=0; x < len; x++) {
-  dat[x] = EEPROM.read(start_position + x);
-  if (dat[x]==0xFF) {
-    dat[x]=' ';
+  for(char x=0; x < len; x++) {
+    dat[x] = EEPROM.read(start_position + x);
+    if (dat[x]==0xFF || dat[x] == ';') {
+      dat[x] = 0x00;
+      if (dat[x]==';') {
+        break;
+      }
+    }
   }
-  if (dat[x]==';') {
-    dat[x] = 0x00;
-    break;
-  }
- }
 }
 
 /**
@@ -186,15 +199,17 @@ void eeprom_store(String data, int address) {
  */
 bool loadFromSpiffs(String path){
   String dataType = "text/plain";
-  if(path.endsWith("/")) path += "index.htm"; 
+  if (!SPIFFS.exists(path)) {
+    return false;
+  }
   if(path.endsWith(".src")) path = path.substring(0, path.lastIndexOf("."));
   else if(path.endsWith(".html")) dataType = "text/html";
   else if(path.endsWith(".css")) dataType = "text/css";
-  else if(path.endsWith(".js")) dataType = "application/javascript";
+  else if(path.endsWith(".js")) dataType = "text/javascript";
   else if(path.endsWith(".jpg")) dataType = "image/jpeg";
   File dataFile = SPIFFS.open(path.c_str(), "r");
   if (server.streamFile(dataFile, dataType) != dataFile.size()) {
-  }
+  } 
   dataFile.close();
   return true;
 }

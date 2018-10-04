@@ -1,10 +1,10 @@
 <html>
 <head>
   <title>Weightlogger Login</title>
-  <link href="/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-  <script src="/js/bootstrap.min.js"></script>
+  <link href="css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="js/bootstrap.min.js"></script>
   <link href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" rel="stylesheet"/>
-  <link href="/css/style.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
   <div class="container">
@@ -34,13 +34,21 @@
         </div>
       </form>
     </div>
+    <br/>
+    <footer class="footer">
+      <div class="container-fluid clearfix">
+        <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright &copy;2018
+          <a href="http://www.elcansoftware.com/">ElcanSoftware</a>. All rights reserved.
+        </span>
+      </div>
+    </footer>
   </div>
-  <footer class="footer">
-    <div class="container-fluid clearfix">
-      <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright &copy;2018
-        <a href="http://www.elcansoftware.com/">ElcanSoftware</a>. All rights reserved.
-      </span>
-    </div>
-  </footer>
+  <script type="text/javascript">
+  $(function() {
+    if ($("#messages").text().length < 2) {
+      $("#messages").toggleClass("hidden");
+    }
+  });
+  </script>
 </body>
 </html>

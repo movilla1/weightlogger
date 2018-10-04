@@ -63,19 +63,16 @@ void handleServerIP() { //handle server ip actions.
   if (!checkAuth()) {
     return;
   }
-  String content = "";
+  message = "";
   if (server.hasArg("IPA")) {
     String ip = server.arg("IPA");
     eeprom_store(ip, SERVER_IP_STORAGE_ADDR);
-    String port = server.arg("port");
+    String port = server.arg("PRT");
     eeprom_store(port, SERVER_PORT_STORAGE_ADDR);
-    content += "Server IP Address set to:";
-    content += ip;
-    content += ":";
-    content += port;
-    content += "<br/><a href=\"/\">Back to home</a><br/>";
-  } else {
-    content +=  "";
+    message += "Server IP Address set to:";
+    message += ip;
+    message += ":";
+    message += port;
   }
   change_selecteds(SETUP_IP_ADDRESS);
   String page = render("/server_ip.html", "Server IP", selecteds, true);
@@ -86,9 +83,13 @@ void handleTags() { //handle tags operations
   if (!checkAuth()) {
     return;
   }
+  if (server.hasArg("tagid") && server.hasArg("position")) {
+    String tagID = server.arg("tagid");
+    String pos = server.arg("position");
+    tag_strings_to_array(tagID, position);
+  }
   change_selecteds(SETUP_TAGS);
-  const String content = getFromSpiffs("/tags.html");
-  String page = render (content, "Tag Manager", selecteds, false);
+  String page = render ("/tags.html", "Tag Manager", selecteds, true);
   server.send(200, "text/html", page);
 }
 
@@ -115,10 +116,11 @@ bool is_authentified() {
 
 void handleAjaxServer() {
   if (!checkAuth()) {
+    server.send(401, "application/json", "{\"failed\":\"Not authorized\"}");
     return;
   }
   char ip[16];
-  char port[4];
+  char port[6];
   String content;
   read_ip_from_eeprom(ip, sizeof(ip));
   read_port_from_eeprom(port,sizeof(port));
@@ -131,10 +133,43 @@ void handleAjaxServer() {
 }
 
 void handleAjaxTags() {
-  //TODO: Implement
   if (!checkAuth()) {
     return;
   }
-  String content="{\"status\":\"OK\"}";
+  String content;
+  if (tagReady) {
+    content = "{\"status\":\"TagReady\", \"tag\":\"";
+    content += tag;
+    content += "\"}"
+  } else {
+    content = "{\"status\":\"empty\"}";
+  }
   server.send(200, "application/json", content);
+}
+
+void handleAjaxMessages() {
+  if (!checkAuth()) {
+    return;
+  }
+  String content = "{\"message\":\"";
+  content += message;
+  content += "\"}";
+  message = "";
+  server.send(200, "application/json", content);
+}
+
+void tag_strings_to_array(String id, String pos) {
+  char tmp;
+  char tag_pos = 0;
+  char pos = (char)pos.toInt();
+  for (int c=0; c < id.length; c += 2) {
+    tmp = id[c] > 0x39 ? (id[c] - 'A') * 16 : (id[c] - '0') * 16;
+    tmp += id[c+1] > 0x39 ? (id[c+1] - 'A') : (id[c+1] - '0');
+    tag[tag_pos] = tmp;
+    tag_pos ++;
+    tag_pos %= 4; //tag consists of only 4 bytes
+  }
+  tag[4] = pos;
+  tag[5] = 0x00;
+  tagReady = true;
 }

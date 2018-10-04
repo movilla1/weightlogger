@@ -50,7 +50,7 @@
         </ul>
       </nav>
       <div class="main-content" id="body">
-        <div class="alert alert-danger" id="messages"></div>
+        <div class="alert alert-danger hidden" style="padding: 5px;" id="messages"></div>
         [[content]]
       </div>
     </div>
@@ -60,5 +60,20 @@
         </div>
     </footer>
   </div>
+  <script type="text/javascript">
+  $(function() {
+    $.getJSON("/ajax/msg").done(function( data ) {
+      $("#messages").html(data.message);
+      checkMessages();
+    });
+    checkMessages();
+  });
+
+  function checkMessages() {
+    if ($("#messages").text().length >= 2) {
+      $("#messages").toggleClass("hidden");
+    }
+  }
+  </script>
 </body>
 </html>

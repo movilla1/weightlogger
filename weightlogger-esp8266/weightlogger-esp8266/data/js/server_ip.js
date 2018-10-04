@@ -1,5 +1,5 @@
-$(document).ready(function(){
-  $.getJSON("/ajax/server_ip", function (data){
+$(function() {
+  $.getJSON("/ajax/server").done(function( data ) {
     $("#ipa").val(data.ip);
     $("#port").val(data.port);
   });
