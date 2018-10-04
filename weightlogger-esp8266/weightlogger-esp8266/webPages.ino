@@ -24,9 +24,8 @@ void handleLogin() {
     msg = "<div class=\"alert alert-danger\" role=\"alert\">Wrong username/password! try again.</div>\n";
   }
   String content = getFromSpiffs("/login.html");
-  
-  const String ending = "</div></body></html>";
-  server.send(200, "text/html", content + msg + ending);
+  content = replace_tag(content, "[[MSG]]", msg);
+  server.send(200, "text/html", content);
 }
 
 //root page can be accessed only if authentification is ok
@@ -35,14 +34,15 @@ void handleRoot() {
   if (!checkAuth()) {
     return;
   }
-  server.sendHeader("Location", "/index.html",true);   //Redirect to our html web page
-  server.send(302, "text/plain", "");
+  change_selecteds(DASHBOARD);
+  String content = render("/index.html","Welcome", selecteds, true);
+  server.send(200, "text/html", content);
 }
 
 //no need authentification
 void handleNotFound() {
   if(loadFromSpiffs(server.uri())) return;
-  String message = "<html><head><title>404 Not found</title></head><body><h1>Not Found</h1>\n\n";
+  String message = "<h1>Not Found</h1>\n";
   message += "<p>URI: ";
   message += server.uri();
   message += "</p>\n<p>Method: ";
@@ -53,49 +53,43 @@ void handleNotFound() {
   for (uint8_t i = 0; i < server.args(); i++) {
     message += "<li>" + server.argName(i) + ": " + server.arg(i) + "</li>\n";
   }
-  message += "</ul></body></html>";
-  server.send(404, "text/html", message);
+  message += "</ul>";
+  String content = getFromSpiffs("/404.html");
+  content = replace_tag(content, "[[CONTENT]]", message);
+  server.send(404, "text/html", content);
 }
 
 void handleServerIP() { //handle server ip actions.
   if (!checkAuth()) {
     return;
   }
-  char ip[16];
-  char port[4];
-  read_ip_from_eeprom(ip, sizeof(ip));
-  read_port_from_eeprom(port,sizeof(port));
-  String content = getFromSpiffs("/server_ip.html");
+  String content = "";
   if (server.hasArg("IPA")) {
     String ip = server.arg("IPA");
-    int x;
-    int ip_len = ip.length();
-    for (x=0; x < ip_len; x++) {
-      EEPROM.write(SERVER_IP_STORAGE_ADDR + x, ip.charAt(x));
-    }
-    EEPROM.write(SERVER_IP_STORAGE_ADDR + ip_len, ';'); //end the ip address with a semi-colon.
-    EEPROM.commit(); 
+    eeprom_store(ip, SERVER_IP_STORAGE_ADDR);
+    String port = server.arg("port");
+    eeprom_store(port, SERVER_PORT_STORAGE_ADDR);
     content += "Server IP Address set to:";
     content += ip;
-    content += "<br/><a href=\"/\">Back to home</a><br/></div></div></body></html>";
-  } else {
-    content +=  "<h3>Setup Server IP Address</h3><form action=\"/server\" method=\"POST\"><div class=\"col-md-offset-5 col-md-3\"><div class=\"form-login\">\
-    <input type=\"text\" id=\"ipa\" class=\"form-control input-sm chat-input\" name=\"IPA\" placeholder=\"Server IP Address\" value=\"";
-    content += ip;
-    content += "\"/> <input type=\"text\" id=\"port\" name=\"port\" value=\"";
+    content += ":";
     content += port;
-    content += " placeholder=\"Server Port\"/> <br/><br/><div class=\"wrapper\"> <span class=\"group-btn\"><button class=\"btn btn-primary btn-md\"><span>Save</span>&nbsp;<i class=\"fas fa-save\"></i></button>\
-    </span></div></div></div></form></div></div></body></html>";
+    content += "<br/><a href=\"/\">Back to home</a><br/>";
+  } else {
+    content +=  "";
   }
-  server.send(200, "text/html", content);
+  change_selecteds(SETUP_IP_ADDRESS);
+  String page = render("/server_ip.html", "Server IP", selecteds, true);
+  server.send(200, "text/html", page);
 }
 
 void handleTags() { //handle tags operations
   if (!checkAuth()) {
     return;
   }
+  change_selecteds(SETUP_TAGS);
   const String content = getFromSpiffs("/tags.html");
-  server.send(200, "text/html", content);
+  String page = render (content, "Tag Manager", selecteds, false);
+  server.send(200, "text/html", page);
 }
 
 bool checkAuth() {
@@ -119,35 +113,28 @@ bool is_authentified() {
   return false;
 }
 
-/**
- * Use this to send images or big files to the client
- */
-bool loadFromSpiffs(String path){
-  String dataType = "text/plain";
-  if(path.endsWith("/")) path += "index.htm"; 
-  if(path.endsWith(".src")) path = path.substring(0, path.lastIndexOf("."));
-  else if(path.endsWith(".html")) dataType = "text/html";
-  else if(path.endsWith(".css")) dataType = "text/css";
-  else if(path.endsWith(".js")) dataType = "application/javascript";
-  else if(path.endsWith(".jpg")) dataType = "image/jpeg";
-  File dataFile = SPIFFS.open(path.c_str(), "r");
-  if (server.streamFile(dataFile, dataType) != dataFile.size()) {
+void handleAjaxServer() {
+  if (!checkAuth()) {
+    return;
   }
-  dataFile.close();
-  return true;
+  char ip[16];
+  char port[4];
+  String content;
+  read_ip_from_eeprom(ip, sizeof(ip));
+  read_port_from_eeprom(port,sizeof(port));
+  content = "{\"ip\": \"";
+  content += ip;
+  content += "\", \"port\":\"";
+  content += port;
+  content += "\"}";
+  server.send(200, "application/json", content);
 }
 
-/**
- * Do not use this function to load images, only for html or txt to render to the client.
- */
-String getFromSpiffs(const String file) { 
-  String content = "";
-  char tmp;
-  File dataFile = SPIFFS.open(file.c_str(), "r");
-  while(dataFile.available()) {
-    tmp = dataFile.read();
-    content.concat(tmp);
+void handleAjaxTags() {
+  //TODO: Implement
+  if (!checkAuth()) {
+    return;
   }
-  dataFile.close();
-  return content;
+  String content="{\"status\":\"OK\"}";
+  server.send(200, "application/json", content);
 }

@@ -9,9 +9,12 @@
 #define GET_SERVER_IP 16
 #define STATUS_REQ 32
 
-#define MAX_SRV_CLIENTS 1
+#define MAX_SRV_CLIENTS 3
 #define SERVER_IP_STORAGE_ADDR 0
 #define SERVER_PORT_STORAGE_ADDR 20
 #define IP_MAX_LENGTH 15
 
+#define DASHBOARD 0
+#define SETUP_IP_ADDRESS 1
+#define SETUP_TAGS 2
 #endif

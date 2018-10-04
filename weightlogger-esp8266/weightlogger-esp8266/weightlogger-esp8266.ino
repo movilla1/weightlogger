@@ -9,10 +9,12 @@
 byte sysState;
 ESP8266WebServer server(8010);  //  port 8010 = web, own
 HTTPClient http;
+char selecteds[3] = {0,0,0};
 
 void setup() {
   String ssid = WiFi.SSID();
   Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
   WiFi.mode(WIFI_STA);
   
   if (ssid.length() > 1) { // if we have the ssid set, wps ran before, let's use it
@@ -22,10 +24,12 @@ void setup() {
     }
   }
   SPIFFS.begin();
-    server.on("/", handleRoot);
+  server.on("/", handleRoot);
   server.on("/login", handleLogin);
   server.on("/server", handleServerIP);
   server.on("/tags", handleTags);
+  server.on("/ajax/server", handleAjaxServer);
+  server.on("/ajax/tags", handleAjaxTags);
   server.onNotFound(handleNotFound);
   //here the list of headers to be recorded
   const char * headerkeys[] = {"User-Agent", "Cookie"} ;
@@ -114,10 +118,13 @@ bool transmit_to_server() {
 }
 
 bool do_wps_setup() {
+  digitalWrite(LED_BUILTIN, HIGH);
   bool wpsSuccess = WiFi.beginWPSConfig();
   if(wpsSuccess) {
+    digitalWrite(LED_BUILTIN, LOW);
     return true;
   } else {
+    digitalWrite(LED_BUILTIN, LOW);
     return false;
   }
 }
@@ -141,4 +148,53 @@ void read_data_from_eeprom(char *dat, char len, int start_position) {
     break;
   }
  }
+}
+
+/**
+ * Do not use this function to load images, only for html or txt to render to the client.
+ */
+String getFromSpiffs(const String file) { 
+  String content = "";
+  char tmp;
+  File dataFile = SPIFFS.open(file.c_str(), "r");
+  while(dataFile.available()) {
+    tmp = dataFile.read();
+    content.concat(tmp);
+  }
+  dataFile.close();
+  return content;
+}
+
+void change_selecteds(char opt) {
+  memset(selecteds, 0, sizeof(selecteds));
+  selecteds[opt] = 1;
+}
+
+void eeprom_store(String data, int address) {
+  int x;
+  int data_len = data.length();
+  for (x=0; x < data_len; x++) {
+    EEPROM.write(address + x, data.charAt(x));
+  }
+  EEPROM.write(address + data_len, ';'); //end the data with a semi-colon.
+  EEPROM.commit(); 
+}
+
+
+/**
+ * Use this to send images or big files to the client
+ */
+bool loadFromSpiffs(String path){
+  String dataType = "text/plain";
+  if(path.endsWith("/")) path += "index.htm"; 
+  if(path.endsWith(".src")) path = path.substring(0, path.lastIndexOf("."));
+  else if(path.endsWith(".html")) dataType = "text/html";
+  else if(path.endsWith(".css")) dataType = "text/css";
+  else if(path.endsWith(".js")) dataType = "application/javascript";
+  else if(path.endsWith(".jpg")) dataType = "image/jpeg";
+  File dataFile = SPIFFS.open(path.c_str(), "r");
+  if (server.streamFile(dataFile, dataType) != dataFile.size()) {
+  }
+  dataFile.close();
+  return true;
 }

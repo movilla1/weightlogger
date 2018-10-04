@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Elcan WeightLogger v1.0 - [[title]]</title>
+  <link href="/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="/js/jquery-3.3.1.min.js" type="text/javascript"></script>
+  <script src="/js/bootstrap.min.js" type="text/javascript"></script>
+
+  <link href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" rel="stylesheet"/>
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container-fluid page-body-wrapper">
+    <div class="row row-offcanvas row-offcanvas-right">
+      <div class="row">
+        <div class="col-md-12 topbar">
+          <img src="/logo.jpg" alt="ElcanAVR Logo" width="240"/>
+          <div class="text-center"><h2>Elcan WeightLogger V1.0</h2></div>
+        </div>
+      </div>
+      <nav class="sidebar sidebar-offcanvas" id="sidebar">
+        <ul class="nav">
+          <li class="nav-item nav-category">
+            <span class="nav-link">Options</span>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link [[active_dash]]" href="/">
+              <i class="fas fa-cogs"></i>&nbsp;
+              <span class="menu-title">Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link [[active_server]]" href="/server">
+              <i class="fas fa-route"></i>&nbsp;
+              <span class="menu-title">Server IP</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link [[active_tags]]" href="/tags">
+              <i class="fas fa-id-card"></i>&nbsp;
+              <span class="menu-title">Tag Management</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/login?DISCONNECT=YES">
+              <i class="fas fa-sign-out-alt"></i>&nbsp;
+              <span class="menu-title">Logout</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="main-content" id="body">
+        <div class="alert alert-danger" id="messages"></div>
+        [[content]]
+      </div>
+    </div>
+    <footer class="footer">
+        <div class="container-fluid clearfix">
+          <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright ©2018 <a href="http://www.elcansoftware.com/">ElcanSoftware</a>. All rights reserved.</span>
+        </div>
+    </footer>
+  </div>
+</body>
+</html>
