@@ -41,6 +41,21 @@
               <span class="menu-title">Tag Management</span>
             </a>
           </li>
+          <li class="nav-item nav-category">
+            <span class="nav-link"><hr/></span>
+          </li>
+          <li class="nav-item nav-category">
+            <span class="nav-link">Admin</span>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link [[active_pass]]" href="/password">
+              <i class="fas fa-unlock"></i>&nbsp;
+              <span class="menu-title">Passwords</span>
+            </a>
+          </li>
+          <li class="nav-item nav-category">
+            <span class="nav-link"><hr/></span>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="/login?DISCONNECT=YES">
               <i class="fas fa-sign-out-alt"></i>&nbsp;
@@ -50,7 +65,7 @@
         </ul>
       </nav>
       <div class="main-content" id="body">
-        <div class="alert alert-danger hidden" style="padding: 5px;" id="messages"></div>
+        <div class="alert alert-info hidden" style="padding: 5px;" id="messages"></div>
         [[content]]
       </div>
     </div>

@@ -9,10 +9,10 @@
 byte sysState;
 ESP8266WebServer server(8010);  //  port 8010 = web, own
 HTTPClient http;
-char selecteds[3] = {0,0,0};
+char selecteds[] = {0,0,0,0};
 String message;
 bool tagReady;
-char tag[6];
+char tag[7];
 
 void setup() {
   tagReady = false;
@@ -33,8 +33,9 @@ void setup() {
   server.on("/server", handleServerIP);
   server.on("/tags", handleTags);
   server.on("/ajax/server", handleAjaxServer);
-  server.on("/ajax/tags", handleAjaxTags);
   server.on("/ajax/msg", handleAjaxMessages);
+  server.on("/receive/tag", handleSentTag);
+  server.on("/password", handlePasswords);
   server.onNotFound(handleNotFound);
   //here the list of headers to be recorded
   const char * headerkeys[] = {"User-Agent", "Cookie"} ;
@@ -42,7 +43,7 @@ void setup() {
   //ask server to track these headers
   server.collectHeaders(headerkeys, headerkeyssize);
   server.begin();  // our web server
-  EEPROM.begin(512);
+  EEPROM.begin(512); //512 Bytes for EEPROM storage
 }
 
 void loop() {
@@ -53,9 +54,7 @@ void loop() {
     cmd = Serial.read(); //commands are single chars
     switch (cmd) {
       case 'T':
-        Serial.println(tag);
-        tagReady = false;
-        memset(tag, 0, sizeof(tag)); //reset to 0
+        send_tag();
         break;
       case 'I':
         Serial.println(WiFi.localIP());
@@ -81,6 +80,9 @@ void loop() {
         } else {
           Serial.println("FAIL");
         }
+        break;
+      case 'Q':
+        Serial.println("INIOK");
         break;
     }
   }
@@ -212,4 +214,30 @@ bool loadFromSpiffs(String path){
   } 
   dataFile.close();
   return true;
+}
+/**
+ * returns the stored pass for the users identified by the number
+ * @param char identifier can be:
+ * - 0 = admin
+ * - 1 = remote
+ */ 
+String getPassword(char identifier) {
+  char pass[PASSWORD_MAX_LENGTH+1];
+  int position;
+  memset(pass, 0, sizeof(pass));
+  position = (identifier==ADMIN_USR) ? PASSWORD_STORAGE0 : PASSWORD_STORAGE1;
+  read_data_from_eeprom(pass, PASSWORD_MAX_LENGTH, position);
+  String read_pass = pass;
+  if (pass[0]==0xFF || pass[0]==0x00) {
+    read_pass = "elcanAdmin!"; //default password for any case when empty.
+  }
+  return read_pass;
+}
+
+void send_tag() {
+  if (tagReady) {
+    Serial.println(tag);
+    tagReady = false;
+    memset(tag, 0, sizeof(tag)); //reset to 0
+  }
 }

@@ -1,21 +1,22 @@
       <div class="col-md-8 col-xs-8">
         <h3>Tag Management</h3>
         <form action="/tags" method="POST">
-          <div class="col-md-12 col-xs-12">
-            <label for="tagid">Tag ID</label>
-            <input type="text" name="tagid" id="tagid" class="form-control input-sm chat-input" />
-            <label for="position">Position</label>
-            <input type="text" name="position" id="position" class="form-control input-sm chat-input"/>
-          </div>
-          <div class="wrapper">
-            <span class="group-btn">
-              <button class="btn btn-primary btn-md"><span>Save</span>&nbsp;<i class="fas fa-save"></i></button>
-            </span>
+          <div class="col-md-offset-2 col-md-6">
+            <div class="form-login">
+              <label for="tagid">Tag ID</label>
+              <input type="text" name="tagid" id="tagid" class="form-control input-sm chat-input" />
+              <label for="position">Position</label>
+              <input type="text" name="position" id="position" class="form-control input-sm chat-input"/>
+              <label for="removeit">Remove?</label>
+              <input type="checkbox" name="removeit" id="removeit" class="form-control input-sm"/>
+              <br/>
+              <div class="wrapper">
+                <span class="group-btn">
+                  <button class="btn btn-primary btn-md"><span>Save</span>&nbsp;<i class="fas fa-save"></i></button>
+                </span>
+              </div>
+            </div>
           </div>
         </form>
       </div>
-      <div class="row">
-        <div class="col-md-12" id="tagids">
-        </div>
-      </div>
-      <script type="text/javascript" src="tags.js"></script>
+      <script type="text/javascript" src="js/tags.js"></script>
