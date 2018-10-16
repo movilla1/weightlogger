@@ -1,30 +1,16 @@
+#define DEBUG 1
 #include <Wire.h>
 #include <EEPROM.h>
 #include "constants.h"
-/**
- * ESP Data gathered in debug:
- * 
- * Server: answers multiple lines, the most significant part is
- *  +IPD,0,442:GET /SERVER?IP=192.168.025.102
- *  +IPD,0,430:GET /ADDTAG?TG=00:00:00:00,250
- * when we open a browser with /SERVER?IP=192.168.25.102, where
- *  0 is the link identifier, 442 is the length received.
- * 
- * CIFSR Answers with multiple lines, sample:
- * +CIFSR:STAIP,"192.168.25.10"
- * +CIFSR:STAMAC,"84:f3:eb:4c:cf:73"
- *
- * OK
- * We must process the STAIP part, ignore the rest.
- **/
 
-
-byte sysState;
+volatile byte sysState;
 char wireBuffer[BUFFER_SIZE];
 char serverIP[IP_ADDR_SIZE+1]; //server ip max: 255.255.255.255 (kept in ascii format) 15 characters + 0x00 string end
-char ipdBuffer[IPD_BUFFER_SIZE];
 char link; //for the wifi cipmux link identifier
 char pollData;
+unsigned long tStart;
+bool wifi_connected;
+
 
 void setup() {
   Wire.begin(I2C_ADDR);
@@ -39,44 +25,44 @@ void setup() {
   sysState = READY;
   initialize_wifi();
   memset(serverIP, 0, sizeof(serverIP));
-  memset(ipdBuffer, 0, sizeof(ipdBuffer));
+  memset(wireBuffer, 0, sizeof(wireBuffer));
   pollData = 'E';
-  eepromReadServerIp();
   digitalWrite(LED, LOW);
 }
 
 void loop() {
-  long tStart, tElapsed;
+  unsigned long tElapsed, tCurrent;
   byte pos = 0;
+  byte tmp[5];
   char t;
+  tCurrent = millis();
   switch(sysState) {
+    case WPS_SETUP_STARTED:
+      delay(1500);
+      if (digitalRead(SETUP_BTN)==0) {
+        sysState = WPS_SETUP;
+      } else {
+        sysState = READY;
+      }
+      break;
     case WPS_SETUP:
       send_wifi_wps_setup();
       tStart = millis();
       digitalWrite(LED, HIGH);
+      wifi_connected = false;
+      sysState = WPS_ON;
       break;
     case WPS_ON:
-      tElapsed = millis() - tStart;
-      if (tElapsed > WPS_TIMEOUT) {
-        send_wifi_wps_stop();
+      tElapsed = tCurrent - tStart;
+      if (wifi_connected == true || tElapsed > WPS_TIMEOUT) {
         digitalWrite(LED, LOW);
+        sysState = READY;
       }
+      empty_serial_buffer();
+      break;
     case ERROR_WIFI:
       showError();
       break;
-  }
-  if (Serial.available() && sysState==READY) { //WIFI is sending something for us:
-    while (Serial.available()) {
-      t = Serial.read();
-      ipdBuffer[pos] = t;
-      pos++;
-      pos %= IPD_BUFFER_SIZE; //circular buffering
-      if (t=='\n') {
-        processIPD();
-      }
-    }
-  } else {
-    empty_serial_buffer();
   }
 }
 
@@ -88,9 +74,11 @@ void receiveEvent(int count) {
       case 'G': //get IP address
         sysState = SEND_IP_ADDRESS;
         clearBuffer = true;
+        pollData = 'I';
         break;
       case 'S': //Get Server IP
         sysState = SEND_SERVER_IP;
+        pollData = 'E';
         clearBuffer = true;
         break;
       case 'T': //transmit data to Server
@@ -102,6 +90,11 @@ void receiveEvent(int count) {
         break;
       case 'P':
         sysState = SEND_POLL_DATA;
+        clearBuffer = true;
+        break;
+      case 'Q':
+        sysState = GET_TAG_DATA;
+        pollData = 'T';
         clearBuffer = true;
         break;
     }
@@ -120,17 +113,19 @@ void requestService() {
       break;
     case SEND_INIT_DATA:
       Wire.write("INIOK");
-      pollData = 'E';
+      pollData = 'A';
       break;
     case SEND_SERVER_IP:
       getServerIP();
       Wire.write(serverIP);
-      pollData = 'E';
       break;
     case SEND_IP_ADDRESS:
       get_ip_address();
       Wire.write(wireBuffer);
-      pollData = 'E';
+      break;
+    case GET_TAG_DATA:
+      getTagData();
+      Wire.write(wireBuffer);
       break;
     default:
       Wire.write(0);
@@ -139,12 +134,7 @@ void requestService() {
 }
 
 void startSetup() {
-  delay(400);
-  if (digitalRead(SETUP_BTN)==0) { //if the button stays low for 400mS
-    sysState = WPS_SETUP;
-  } else {
-    sysState = READY;
-  }
+  sysState = WPS_SETUP_STARTED;
 }
 
 void showError() {
@@ -161,17 +151,28 @@ void empty_serial_buffer() {
   }
 }
 
-void eepromReadServerIp() {
-  char tmp;
-  for (byte i=0; i < sizeof(serverIP)-1; i++) {
-    tmp = EEPROM.read(IP_START_ADDR+i);
-    if (tmp > '0' && tmp < '9') {
-      serverIP[i] = tmp;
-    }
+void getTagData() {
+  char tmp[20];
+  char pos = 0;
+  memset(tmp, 0x00, sizeof(tmp));
+  Serial.print(F("T\r\n"));
+  Serial.flush();
+  delay(5);
+  while(Serial.available()) {
+    tmp[pos] = Serial.read();
+    pos ++;
+    pos %= 20; //circular buffer, should not reach the return point under normal operations.
   }
+  tmp[pos] = 0x00;
+  memcpy(wireBuffer, tmp, strlen(tmp));
 }
 
 void getServerIP() {
   pollData = 'S';
-  eepromReadServerIp();
+  char ip[IP_ADDR_SIZE+1];
+  memset(ip, 0, sizeof(ip));
+  Serial.println("E");
+  Serial.flush();
+  delay(5);
+  Serial.readBytesUntil('\r', ip, sizeof(ip) - 1);
 }

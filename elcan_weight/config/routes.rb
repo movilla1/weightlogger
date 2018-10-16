@@ -5,8 +5,8 @@ Rails.application.routes.draw do
   ActiveAdmin.routes(self)
   get '/about', to: 'home#about'
   get '/help', to: 'home#help'
-  post '/weight/create_from_rfid', to: 'weight#create_from_rfid',
-                                   as: :weight_create_from_rfid
+  post '/pesaje/create_from_rfid', to: 'weights#create_from_rfid',
+                                   as: :weights_create_from_rfid
   resources :weight, only: %w[new create]
   root to: 'home#index'
 end

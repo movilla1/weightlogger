@@ -8,7 +8,6 @@
 
 byte sysState;
 ESP8266WebServer server(8010);  //  port 8010 = web, own
-HTTPClient http;
 char selecteds[] = {0,0,0,0};
 String message;
 bool tagReady;
@@ -113,34 +112,53 @@ void send_status() {
 }
 
 bool transmit_to_server() {
+  HTTPClient http;
   char ip[16];
-  char port[4];
+  char port[5];
+  String url;
+  const String url_end = "/pesaje/create_from_rfid";
+  char tmp;
+
   read_ip_from_eeprom(ip, sizeof(ip));
   read_port_from_eeprom(port,sizeof(port));
-  String server = "http://";
-  server += ip;
-  if (port[0]!=0xFF && port[0]!=0x00 && port[0]!='0') {
-    server += ":";
-    server += port;
+  if (port[0]==0xFF || port[0]==0x00 || port[0]=='0') {
+    port[0] = '8';
+    port[1] = '0';
+    port[2] = 0x00;
   }
-  server += "/pesaje/create_from_rfid"; 
-  http.begin(server);
+  
+  url = "http://";
+  url += ip;
+  url += ":";
+  url += port;
+  url += url_end;
   String dat="data=";
-  while(char tmp = Serial.read() != '\n') {
-    dat += tmp;
+  tmp = 0;
+  while(tmp != '\n') {
+    if (Serial.available()) {
+      tmp = Serial.read();
+      if (tmp > 0 && tmp!='\n')
+        dat += tmp;
+    }
   }
+  dat += "&auth=32\r\n";
+  http.writeToStream(&Serial);
+  http.begin(url);
+  http.addHeader("Content-Type","application/x-www-form-urlencoded");
   int httpCode = http.POST(dat);
+  String payload = http.getString();
+  http.end();
   return httpCode == 200;
 }
 
 bool do_wps_setup() {
-  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(LED_BUILTIN, LOW);
   bool wpsSuccess = WiFi.beginWPSConfig();
   if(wpsSuccess) {
-    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(LED_BUILTIN, HIGH);
     return true;
   } else {
-    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(LED_BUILTIN, HIGH);
     return false;
   }
 }

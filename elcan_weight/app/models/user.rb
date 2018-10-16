@@ -13,6 +13,6 @@ class User < ActiveRecord::Base
 
   def find_with_tag(tag_id)
     tag = tags.find_by(tag_id: tag_id)
-    return tag.user if tag.present?
+    tag.user if tag.present?
   end
 end

@@ -27,7 +27,7 @@
       "cwd": "${workspaceRoot}/elcan_weight/",
       "program": "${workspaceRoot}/elcan_weight/bin/rails",
       "args": [
-        "server"
+        "s", "-b0.0.0.0"
       ]
     },
     {
