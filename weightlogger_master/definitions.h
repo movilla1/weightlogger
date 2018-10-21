@@ -13,13 +13,12 @@
 #define OPEN_BARRIER 64
 #define WRITE_RECORD 128
 #define UNKNOWN_CARD 137
-#define DATA_LINK 171
+#define GET_TAG_DATA 171
 #define TIMED_WAIT 250
 
 /**
  * Ports used
  */
-#define WPS_BUTTON 2
 #define BUZZER 3
 #define BARRERA 4
 #define WIFI_RX 5

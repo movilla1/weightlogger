@@ -10,8 +10,8 @@
 #define STATUS_REQ 32
 
 #define MAX_SRV_CLIENTS 3
-#define SERVER_IP_STORAGE_ADDR 0
-#define SERVER_PORT_STORAGE_ADDR 20
+#define MAX_URL_LEN 200
+#define SERVER_URL_STORAGE_ADDR 0
 #define PASSWORD_STORAGE0 30 //max 20 chars per password.
 #define PASSWORD_STORAGE1 60 //max 20 chars per password.
 #define PASSWORD_MAX_LENGTH 20

@@ -1,6 +1,6 @@
 #define DEBUG true
 //#define WITH_WEIGHT true
-//#define WITH_WIFI true
+#define WITH_WIFI true
 #include <Wire.h>
 #include <SPI.h>
 #include <RTClib.h>
@@ -18,7 +18,6 @@ void setup() {
   pinMode(WIFI_RX, INPUT);
   pinMode(WIFI_TX, OUTPUT);
   pinMode(BARRERA, OUTPUT);
-  pinMode(WPS_BUTTON, INPUT_PULLUP);
   pinMode(BUZZER, OUTPUT);
   pinMode(RFID_SS, OUTPUT);
   pinMode(RFID_RST, OUTPUT);
@@ -35,9 +34,6 @@ void setup() {
   lcd.begin(16,2);
   initialize_rtc();
   initialize_rfid();
-#ifdef WITH_WIFI
-  initialize_wifi();
-#endif
   sys_state = READY;
   whos_entering = 0;
   backlightStart = 0;
@@ -70,8 +66,8 @@ void loop() {
         serialOptions();
       }
 #endif
-      if (wifi.available()) {
-        sys_state = DATA_LINK;
+      if (wifi.poll() == 'T') {
+        sys_state = GET_TAG_DATA;
       }
       break;
     case READ_RFID:
@@ -111,8 +107,8 @@ void loop() {
       alertUnknown();
       sys_state = READY;
       break;
-    case DATA_LINK:
-      //TODO: Implement again
+    case GET_TAG_DATA:
+      get_tag_data();
       break;
   }
 }
@@ -262,11 +258,21 @@ bool check_elapsed_time() {
 }
 
 void send_to_server() {
-  //TODO : Implement.
+  char tmp[20];
+  long time = enteringTime.secondstime();
+  memset(tmp, 0, sizeof(tmp));
+  memcpy(tmp, &whos_entering, sizeof(whos_entering));
+  memcpy(tmp+sizeof(whos_entering), &time, sizeof(time));
+  memcpy(tmp+sizeof(whos_entering)+sizeof(enteringTime)+1, &measuredWeight, sizeof(measuredWeight));
+  wifi.write(tmp);
 }
 
 void send_intrussion_attemp_to_server(){
-  //TODO : Implement
+  char tmp[20];
+  long time = enteringTime.secondstime();
+  memset(tmp, 0, sizeof(tmp));
+  memcpy(tmp+sizeof(whos_entering)+1, &time, sizeof(time) );
+  wifi.write(tmp);
 }
 
 void alertUnknown() {
@@ -285,7 +291,8 @@ void lcd_show_ready() {
   char dateString[15];
   lcd.setCursor(0,0);
   DateTime tstamp = rtc.now();
-  sprintf(dateString, "%02d/%02d/%04d %02d:%02d",tstamp.day(),tstamp.month(),tstamp.year(),tstamp.hour(),tstamp.minute());
+  sprintf(dateString, "%02d/%02d/%04d %02d:%02d", tstamp.day(), tstamp.month(),
+    tstamp.year(), tstamp.hour(), tstamp.minute());
   lcd.print(dateString);
   lcd.setCursor(0,1);
   lcd.print(F("Esperando..."));
@@ -293,7 +300,8 @@ void lcd_show_ready() {
 
 void lcd_show_ip() {
 #ifdef WITH_WIFI  
-  String ip = wifi.get_ip();
+  String ip = "Station IP......";
+  ip += wifi.get_ip();
   lcd_show_message(ip);
   delay(2000); //2 seconds delay to read the ip
 #else
@@ -404,3 +412,28 @@ void debug_store_card(byte *card_data) {
   }
 }
 #endif
+
+void get_tag_data() {
+  char *tag = (char *) malloc(7);
+  char pos;
+  tag = wifi.readCardData();
+  struct card_block card;
+  memcpy(card.card_uid, tag, 4);
+  memcpy(card.card_number, tag+4, 1);
+  pos = tag[4];
+  if (tag[5]==0) {
+    store_card(card, pos);
+  } else {
+    erase_card(pos);
+  }
+}
+
+void erase_card(char pos) {
+  if (pos > 200) //always inside the position limit.
+    return;
+  char ppos = (pos * sizeof(struct card_block)) + 1;
+  for (char i=0; i<sizeof(struct card_block); i++) {
+    EEPROM.write(ppos+i, 0xff);
+    delay(5); // 5mS between byte writes, to allow the data to be written
+  }
+}

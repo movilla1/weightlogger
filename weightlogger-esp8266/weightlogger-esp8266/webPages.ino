@@ -61,23 +61,19 @@ void handleNotFound() {
   server.send(404, "text/html", content);
 }
 
-void handleServerIP() { //handle server ip actions.
+void handleServer() { //handle server ip actions.
   if (!checkAuth()) {
     return;
   }
   message = "";
-  if (server.hasArg("IPA")) {
-    String ip = server.arg("IPA");
-    eeprom_store(ip, SERVER_IP_STORAGE_ADDR);
-    String port = server.arg("PRT");
-    eeprom_store(port, SERVER_PORT_STORAGE_ADDR);
-    message += "Server IP Address set to:";
-    message += ip;
-    message += ":";
-    message += port;
+  if (server.hasArg("S_URL")) {
+    String url = server.arg("S_URL");
+    eeprom_store(url, SERVER_URL_STORAGE_ADDR);
+    message += "Server URL set to:";
+    message += url;
   }
   change_selecteds(SETUP_IP_ADR);
-  String page = render("/server_ip.html", "Server IP", selecteds, true);
+  String page = render("/server_url.html", "Server URL", selecteds, true);
   server.send(200, "text/html", page);
 }
 
@@ -123,15 +119,11 @@ void handleAjaxServer() {
     server.send(401, "application/json", "{\"failed\":\"Not authorized\"}");
     return;
   }
-  char ip[16];
-  char port[6];
+  char url[200];
   String content;
-  read_ip_from_eeprom(ip, sizeof(ip));
-  read_port_from_eeprom(port,sizeof(port));
-  content = "{\"ip\": \"";
-  content += ip;
-  content += "\", \"port\":\"";
-  content += port;
+  read_ip_from_eeprom(url, sizeof(url));
+  content = "{\"url\": \"";
+  content += url;
   content += "\"}";
   server.send(200, "application/json", content);
 }

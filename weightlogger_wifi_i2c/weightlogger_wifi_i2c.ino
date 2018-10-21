@@ -84,15 +84,15 @@ void receiveEvent(int count) {
       case 'T': //transmit data to Server
         transmit_to_server();
         break;
-      case 'I':
+      case 'I': //initialization
         sysState = SEND_INIT_DATA;
         clearBuffer = true;
         break;
-      case 'P':
+      case 'P': //poll status
         sysState = SEND_POLL_DATA;
         clearBuffer = true;
         break;
-      case 'Q':
+      case 'Q': //get tag
         sysState = GET_TAG_DATA;
         pollData = 'T';
         clearBuffer = true;

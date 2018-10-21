@@ -29,7 +29,7 @@ void setup() {
   SPIFFS.begin();
   server.on("/", handleRoot);
   server.on("/login", handleLogin);
-  server.on("/server", handleServerIP);
+  server.on("/server", handleServer);
   server.on("/tags", handleTags);
   server.on("/ajax/server", handleAjaxServer);
   server.on("/ajax/msg", handleAjaxMessages);
@@ -113,26 +113,11 @@ void send_status() {
 
 bool transmit_to_server() {
   HTTPClient http;
-  char ip[16];
-  char port[5];
-  String url;
-  const String url_end = "/pesaje/create_from_rfid";
+  char url[MAX_URL_LEN+1];
   char tmp;
-
-  read_ip_from_eeprom(ip, sizeof(ip));
-  read_port_from_eeprom(port,sizeof(port));
-  if (port[0]==0xFF || port[0]==0x00 || port[0]=='0') {
-    port[0] = '8';
-    port[1] = '0';
-    port[2] = 0x00;
-  }
-  
-  url = "http://";
-  url += ip;
-  url += ":";
-  url += port;
-  url += url_end;
   String dat="data=";
+  const char len = MAX_URL_LEN;
+  read_data_from_eeprom(url, len, SERVER_URL_STORAGE_ADDR);
   tmp = 0;
   while(tmp != '\n') {
     if (Serial.available()) {
@@ -161,14 +146,6 @@ bool do_wps_setup() {
     digitalWrite(LED_BUILTIN, HIGH);
     return false;
   }
-}
-
-void read_ip_from_eeprom(char *ip, char len) {
-  read_data_from_eeprom(ip, len, SERVER_IP_STORAGE_ADDR);
-}
-
-void read_port_from_eeprom(char *port, char len) {
-  read_data_from_eeprom(port, len, SERVER_PORT_STORAGE_ADDR);
 }
 
 void read_data_from_eeprom(char *dat, char len, int start_position) {

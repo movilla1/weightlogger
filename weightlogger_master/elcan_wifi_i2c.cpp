@@ -5,6 +5,13 @@
  * This library requires the Wire library included and initialized.
  * @author: Mario O. Villarroel
  * @copyright: 2018 - ElcanSoftware
+ * This works for the following protocol:
+ *  'G': //get IP address
+ *  'S': //Get Server IP
+ *  'T': //Transmit data to Server
+ *  'I': //initialization, returns INIOK
+ *  'P': //poll status, returns T, I, S
+ *  'Q': //get tag, gets the tag data (6 bytes, 4 uid, 1 position, 1 rmv status where 0 keeps and 1 removes)
  * */
 
 ElcanWifiI2C::ElcanWifiI2C() {
@@ -34,28 +41,13 @@ bool ElcanWifiI2C::begin(int addr) {
   return (_error == 0);
 }
 
-void ElcanWifiI2C::set_server_ip(char *ip) {
-  bool finish = false;
-  byte pos = 0;
-  Wire.beginTransmission(_i2c_addr);
-  Wire.write("T");
-  while(!finish) {
-    Wire.write(ip[pos]);
-    if (ip[pos]==0x00) {
-      finish = true;
-    }
-    pos ++;
-  }
-  Wire.endTransmission();
-}
-
 char *ElcanWifiI2C::get_ip() {
   char result[32];
   byte pos = 0;
   Wire.beginTransmission(_i2c_addr);
   Wire.write("G");
   Wire.endTransmission();
-  delay(200);
+  delay(20);
   Wire.requestFrom(_i2c_addr, IP_ADDRESS_LEN); 
   while (Wire.available() && pos < IP_ADDRESS_LEN){
     result[pos] = Wire.read();
@@ -84,4 +76,31 @@ int ElcanWifiI2C::write(char *data) {
 
 int ElcanWifiI2C::available() {
   return Wire.available();
+}
+
+char ElcanWifiI2C::poll() {
+  char tmp;
+  Wire.beginTransmission(_i2c_addr);
+  Wire.write("P");
+  Wire.endTransmission();
+  delay(5);
+  Wire.requestFrom(_i2c_addr, 1);
+  tmp = Wire.read();
+  return tmp;
+}
+
+char *ElcanWifiI2C::readCardData() {
+  char tmp[10];
+  char pos;
+  memset(tmp, 0, sizeof(tmp));
+  Wire.beginTransmission(_i2c_addr);
+  Wire.write("Q");
+  Wire.endTransmission();
+  Wire.requestFrom(_i2c_addr, 6);
+  pos = 0;
+  while(Wire.available()) {
+    tmp[pos] = Wire.read();
+    pos++;
+  }
+  return tmp;
 }

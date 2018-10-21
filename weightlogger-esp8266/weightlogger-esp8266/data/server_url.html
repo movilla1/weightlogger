@@ -1,16 +1,13 @@
 <div class="col-md-8 col-xs-8">
-  <h3>Setup Server IP Address</h3>
+  <h3>Setup Server URL</h3>
   <div class="row">
     <div class="col-md-12">
       <form action="/server" method="POST">
         <div class="col-md-offset-2 col-md-6">
           <div class="form-login">
-            <label for="ipa">IP Address</label>
-            <input type="text" id="ipa" class="form-control input-sm chat-input" name="IPA" placeholder="Server IP Address"
-              value="" />
-            <br />
-            <label for="port">Port</label>
-            <input type="text" id="port" class="form-control input-sm chat-input" name="PRT" value="" placeholder="Server Port" />
+            <label for="ipa">Server URL</label>
+            <input type="text" id="ipa" class="form-control input-sm chat-input" name="S_URL" placeholder="Server URL"
+              value="" maxlength="200"/>
             <br /><br />
             <div class="wrapper">
               <span class="group-btn">

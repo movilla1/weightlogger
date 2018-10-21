@@ -8,6 +8,8 @@
     "cstddef": "cpp",
     "deque": "cpp",
     "string_view": "cpp",
-    "twi.h": "c"
+    "twi.h": "c",
+    "ostream": "cpp",
+    "istream": "cpp"
   }
 }

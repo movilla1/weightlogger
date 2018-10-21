@@ -28,10 +28,3 @@ void initialize_rfid() {
   mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
   mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max); // Max reading distance
 }
-
-void initialize_wifi() {
-  char tmp;
-  /*while(wifi.available()) { //read all the bytes at startup ()
-    tmp = wifi.read();
-  }*/
-}
