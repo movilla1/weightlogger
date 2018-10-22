@@ -58,9 +58,6 @@ void loop() {
       case 'I':
         Serial.println(WiFi.localIP());
         break;
-      case 'E':
-        send_server_ip();
-        break;
       case 'P':
         send_status();
         break;
@@ -85,12 +82,6 @@ void loop() {
         break;
     }
   }
-}
-
-void send_server_ip() {
-  char ip[16];
-  read_ip_from_eeprom(ip, sizeof(ip));
-  Serial.println(ip);
 }
 
 void send_status() {

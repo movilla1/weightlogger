@@ -41,20 +41,19 @@ bool ElcanWifiI2C::begin(int addr) {
   return (_error == 0);
 }
 
-char *ElcanWifiI2C::get_ip() {
-  char result[32];
+void ElcanWifiI2C::get_ip(char *result) {
   byte pos = 0;
   Wire.beginTransmission(_i2c_addr);
   Wire.write("G");
   Wire.endTransmission();
-  delay(20);
-  Wire.requestFrom(_i2c_addr, IP_ADDRESS_LEN); 
+  delay(3);
+  Wire.requestFrom(_i2c_addr, IP_ADDRESS_LEN);
+  delay(3);
   while (Wire.available() && pos < IP_ADDRESS_LEN){
     result[pos] = Wire.read();
     pos++;
   }
   result[pos] = 0x00;
-  return result;
 }
 
 bool ElcanWifiI2C::is_error() {
@@ -89,18 +88,16 @@ char ElcanWifiI2C::poll() {
   return tmp;
 }
 
-char *ElcanWifiI2C::readCardData() {
-  char tmp[10];
+void ElcanWifiI2C::readCardData(char *result, char len) {
   char pos;
-  memset(tmp, 0, sizeof(tmp));
+  memset(result, 0, len);
   Wire.beginTransmission(_i2c_addr);
   Wire.write("Q");
   Wire.endTransmission();
   Wire.requestFrom(_i2c_addr, 6);
   pos = 0;
   while(Wire.available()) {
-    tmp[pos] = Wire.read();
+    result[pos] = Wire.read();
     pos++;
   }
-  return tmp;
 }

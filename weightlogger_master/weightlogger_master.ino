@@ -37,6 +37,7 @@ void setup() {
   sys_state = READY;
   whos_entering = 0;
   backlightStart = 0;
+  delay(5000);
 #ifdef WITH_WIFI
   if (wifi.begin(WIFI_I2C_ADDR)) {
     lcd_show_ip();
@@ -300,9 +301,12 @@ void lcd_show_ready() {
 
 void lcd_show_ip() {
 #ifdef WITH_WIFI  
-  String ip = "Station IP......";
-  ip += wifi.get_ip();
-  lcd_show_message(ip);
+  char tmp[20];
+  memset(tmp,0 ,sizeof(tmp));
+  char text[32] = "Station IP......";
+  wifi.get_ip(tmp);
+  strcat(text, tmp);
+  lcd_show_message(text);
   delay(2000); //2 seconds delay to read the ip
 #else
   lcd_show_message("Initialized");
@@ -414,9 +418,9 @@ void debug_store_card(byte *card_data) {
 #endif
 
 void get_tag_data() {
-  char *tag = (char *) malloc(7);
+  char tag[10];
   char pos;
-  tag = wifi.readCardData();
+  wifi.readCardData(tag, sizeof(tag));
   struct card_block card;
   memcpy(card.card_uid, tag, 4);
   memcpy(card.card_number, tag+4, 1);

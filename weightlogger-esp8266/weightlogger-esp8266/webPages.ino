@@ -119,9 +119,10 @@ void handleAjaxServer() {
     server.send(401, "application/json", "{\"failed\":\"Not authorized\"}");
     return;
   }
-  char url[200];
+  char url[MAX_URL_LEN+1];
+  const char len = MAX_URL_LEN;
   String content;
-  read_ip_from_eeprom(url, sizeof(url));
+  read_data_from_eeprom(url, len, SERVER_URL_STORAGE_ADDR);
   content = "{\"url\": \"";
   content += url;
   content += "\"}";

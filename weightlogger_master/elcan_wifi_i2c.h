@@ -12,10 +12,10 @@ class ElcanWifiI2C {
     bool begin(int addr);
     int available();
     char poll();
-    char *get_ip();
+    void get_ip(char *result);
     bool is_error();
     int write(char *data);
-    char *readCardData();
+    void readCardData(char *result, char len);
 };
 #define _ELCAN_WIFI_I2C;
 #endif

@@ -1,13 +1,9 @@
 #define IP_START_ADDR 0x00
-#define IP_START_POS_IN_RESPONSE 14
 #define WIFI_TIMEOUT 2000 //milliseconds timeout for wifi
 #define WPS_TIMEOUT 30000 // 30 seconds after turning on wps we turn it off
 #define BUFFER_SIZE 24
-#define IPD_BUFFER_SIZE 250
 #define IP_ADDR_SIZE 15
-#define PARAM_SIZE 15
-#define SKIP_SIZE 4 // skip ?IP= OR ?TA=
-#define COMMAND_SIZE 6
+#define MAX_TAG_SIZE 10
 
 #define SETUP_BTN 3
 #define LED 8
