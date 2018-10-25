@@ -1,8 +1,0 @@
-es:
-  active_admin:
-    blank_slate: 
-      content: "Aqui no hay nada aún."
-    new_model: "Crear %{model}"
-    create_model: "Crear %{model}"
-    edit_model: "Editar %{model}"
-    update_model: "Editar %{model}"
