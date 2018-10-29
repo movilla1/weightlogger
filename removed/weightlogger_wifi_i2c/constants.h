@@ -2,6 +2,7 @@
 #define WIFI_TIMEOUT 2000 //milliseconds timeout for wifi
 #define WPS_TIMEOUT 30000 // 30 seconds after turning on wps we turn it off
 #define BUFFER_SIZE 24
+#define TAG_BUFFER_SIZE 11
 #define IP_ADDR_SIZE 15
 #define MAX_TAG_SIZE 10
 

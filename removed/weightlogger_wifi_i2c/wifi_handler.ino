@@ -16,8 +16,6 @@ void initialize_wifi() {
   }
   if (timeout) {
     sysState = ERROR_WIFI;
-  } else {
-    empty_serial_buffer();
   }
 }
 
@@ -30,7 +28,6 @@ void send_wifi_wps_setup() {
 void get_ip_address() {
   char t;
   pollData = 'I';
-  empty_serial_buffer();
   Serial.print(F("I\r\n"));
   Serial.flush();
 }

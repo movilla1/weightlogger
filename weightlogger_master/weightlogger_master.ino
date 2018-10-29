@@ -49,6 +49,7 @@ void setup() {
 
 void loop() {
   bool tmp;
+  char polled;
   check_lcd_light();
   switch(sys_state) {
     case ERROR_WIFI:
@@ -67,8 +68,12 @@ void loop() {
         serialOptions();
       }
 #endif
-      if (wifi.poll() == 'T') {
+      polled = wifi.poll();
+      if (polled == 'T') {
         sys_state = GET_TAG_DATA;
+#ifdef DEBUG        
+        Serial.println(F("GETTING TAG"));
+#endif
       }
       break;
     case READ_RFID:
@@ -260,11 +265,18 @@ bool check_elapsed_time() {
 
 void send_to_server() {
   char tmp[20];
+  char intTmp[4];
   long time = enteringTime.secondstime();
   memset(tmp, 0, sizeof(tmp));
+  memset(intTmp, 0, sizeof(intTmp));
   memcpy(tmp, &whos_entering, sizeof(whos_entering));
-  memcpy(tmp+sizeof(whos_entering), &time, sizeof(time));
-  memcpy(tmp+sizeof(whos_entering)+sizeof(enteringTime)+1, &measuredWeight, sizeof(measuredWeight));
+  dec_to_str(intTmp, time, sizeof(time));
+  memcpy(tmp+sizeof(whos_entering), intTmp, sizeof(intTmp));
+  dec_to_str(intTmp, measuredWeight, sizeof(measuredWeight));
+  memcpy(tmp+1+4+1, intTmp, sizeof(intTmp));
+#ifdef DEBUG
+  Serial.println(tmp);
+#endif
   wifi.write(tmp);
 }
 
@@ -301,13 +313,16 @@ void lcd_show_ready() {
 
 void lcd_show_ip() {
 #ifdef WITH_WIFI  
-  char tmp[20];
-  memset(tmp,0 ,sizeof(tmp));
-  char text[32] = "Station IP......";
+  char tmp[17];
+  char text[32];
+  memset(tmp,0x00 ,sizeof(tmp));
+  memset(text, 0x00, sizeof(text));
+  strcat(text, "Station IP......");
   wifi.get_ip(tmp);
   strcat(text, tmp);
   lcd_show_message(text);
-  delay(2000); //2 seconds delay to read the ip
+  delay(2500); //2 1/2 seconds delay to read the ip
+  lcd.clear();
 #else
   lcd_show_message("Initialized");
 #endif
@@ -419,11 +434,22 @@ void debug_store_card(byte *card_data) {
 
 void get_tag_data() {
   char tag[10];
+  char *tagp;
   char pos;
   wifi.readCardData(tag, sizeof(tag));
   struct card_block card;
-  memcpy(card.card_uid, tag, 4);
-  memcpy(card.card_number, tag+4, 1);
+  tagp = tag;
+#ifdef DEBUG
+  Serial.print(F("Card Data:"));
+  Serial.println(tagp);
+#endif
+  memcpy(card.card_uid, tagp, 4);
+  tagp = tag + 4;
+  memcpy((void *)card.card_number, tagp, 1);
+#ifdef DEBUG
+  Serial.println(tagp);
+  Serial.println(pos);
+#endif
   pos = tag[4];
   if (tag[5]==0) {
     store_card(card, pos);
@@ -440,4 +466,16 @@ void erase_card(char pos) {
     EEPROM.write(ppos+i, 0xff);
     delay(5); // 5mS between byte writes, to allow the data to be written
   }
+}
+
+void dec_to_str (char* str, uint32_t val, size_t digits)
+{
+  size_t i=1;
+
+  for(; i<=digits; i++)
+  {
+    str[digits-i] = (char)((val % 10) + '0');
+    val/=10;
+  }
+  str[i-1] = '\0'; // assuming you want null terminated strings?
 }

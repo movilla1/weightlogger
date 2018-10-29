@@ -3,14 +3,12 @@
 #include <EEPROM.h>
 #include "constants.h"
 
-volatile byte sysState;
-char wireBuffer[BUFFER_SIZE];
-char serverIP[IP_ADDR_SIZE+1]; //server ip max: 255.255.255.255 (kept in ascii format) 15 characters + 0x00 string end
-char link; //for the wifi cipmux link identifier
-char pollData;
-char serialCount;
-bool newData;
 unsigned long tStart;
+char wireBuffer[BUFFER_SIZE];
+char tagBuffer[TAG_BUFFER_SIZE];
+char pollData;
+volatile byte sysState;
+bool newData;
 bool wifi_connected;
 
 
@@ -26,8 +24,8 @@ void setup() {
   delay(5000); //wait for the wifi interface to finish the initial settings/bootload.
   sysState = READY;
   initialize_wifi();
-  memset(serverIP, 0, sizeof(serverIP));
   memset(wireBuffer, 0, sizeof(wireBuffer));
+  memset(tagBuffer, 0, sizeof(tagBuffer));
   pollData = 'E';
   newData = false;
   digitalWrite(LED, LOW);
@@ -67,7 +65,6 @@ void loop() {
         digitalWrite(LED, LOW);
         sysState = READY;
       }
-      empty_serial_buffer();
       break;
     case ERROR_WIFI:
       showError();
@@ -123,8 +120,13 @@ void requestService() {
       pollData = 'A';
       sysState = READY;
       break;
-    case SEND_IP_ADDRESS:
     case GET_TAG_DATA:
+      Wire.write(tagBuffer);
+      newData = false;
+      pollData = 'E';
+      sysState = READY;
+      break;
+    case SEND_IP_ADDRESS:
       newData = false;
       Wire.write(wireBuffer);
       pollData = 'E';
@@ -147,29 +149,24 @@ void showError() {
   delay(150);
 }
 
-void empty_serial_buffer() {
-  char tmp;
-  while (Serial.available()) {
-    tmp = Serial.read(); // read so we empty the buffer
-  }
-}
-
 void serialEvent() {
   char t;
   char size;
+  char *output;
   switch (sysState) {
     case GET_TAG_DATA:
       size = MAX_TAG_SIZE;
+      output = tagBuffer;
       break;
     case SEND_IP_ADDRESS:
       size = IP_ADDR_SIZE;
+      output = wireBuffer;
       break;
     default:
       size = 30;
       break;
   }
-  t = Serial.readBytesUntil('\n',wireBuffer, size);
-  wireBuffer[t] = 0x00;
-  Serial.println(wireBuffer);
+  t = Serial.readBytesUntil('\n', output, size);
+  output[t] = 0x00;
   newData = true;
 }
