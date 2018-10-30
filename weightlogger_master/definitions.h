@@ -42,4 +42,4 @@
  */
 #define MAX_CARD_WAIT_TIME 10000 //10 seconds
 
-#define WIFI_I2C_ADDR 0x18
+#define SCALE_I2C_ADDR 0x20

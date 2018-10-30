@@ -7,7 +7,7 @@
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
 #include <LiquidCrystal_I2C.h>
 
-#include "elcan_wifi_i2c.h"
+#include "elcan_wifi.h"
 #include "eepromblock.h"
 #include "definitions.h"
 #include "globals.h"
@@ -24,10 +24,7 @@ void setup() {
   digitalWrite(BARRERA, LOW);
   digitalWrite(BUZZER, LOW);
 #ifdef WITH_WEIGHT
-  Serial.begin(4800, SERIAL_8N1); // according to wheight measurement device
-#endif
-#ifdef DEBUG
-  Serial.begin(57600);
+  scale.begin(SCALE_I2C_ADDR); // according to wheight measurement device
 #endif
   SPI.begin();           // MFRC522 Hardware uses SPI protocol
   Wire.begin();
@@ -39,7 +36,7 @@ void setup() {
   backlightStart = 0;
   delay(5000);
 #ifdef WITH_WIFI
-  if (wifi.begin(WIFI_I2C_ADDR)) {
+  if (wifi.begin(115200)) {
     lcd_show_ip();
   } else {
     sys_state = ERROR_WIFI;
@@ -62,18 +59,11 @@ void loop() {
       lcd_show_ready();
       if (getID()) {
         sys_state = READ_RFID;
-      }
-#ifdef DEBUG
-      if (Serial.available()){
-        serialOptions();
-      }
-#endif
-      polled = wifi.poll();
-      if (polled == 'T') {
-        sys_state = GET_TAG_DATA;
-#ifdef DEBUG        
-        Serial.println(F("GETTING TAG"));
-#endif
+      } else {
+        polled = wifi.poll();
+        if (polled == 'T') {
+          sys_state = GET_TAG_DATA;
+        }
       }
       break;
     case READ_RFID:
@@ -87,7 +77,7 @@ void loop() {
     case READ_WEIGHT:
       lcd_show_wait();
  #ifdef WITH_WEIGHT
-      read_weight();
+      scale.get_weight(measuredWeight);
  #endif
       sys_state = WRITE_RECORD;
       break;
@@ -115,6 +105,7 @@ void loop() {
       break;
     case GET_TAG_DATA:
       get_tag_data();
+      sys_state = READY;
       break;
   }
 }
@@ -132,13 +123,7 @@ uint8_t getID() {
   // Until we support 7 byte PICCs
   for ( uint8_t i = 0; i < 4; i++) {  //
     readCard[i] = mfrc522.uid.uidByte[i];
-#ifdef DEBUG
-    Serial.print(readCard[i], HEX);
-#endif
   }
-#ifdef DEBUG
-  Serial.println(" ");
-#endif
   mfrc522.PICC_HaltA(); // Stop reading
   return 1;
 }
@@ -164,43 +149,6 @@ bool read_rtc_value() {
   uint32_t tmp = 0;
   enteringTime = rtc.now();
   return true;
-}
-
-/**
- * Read the weight and store it in memory
- */
-void read_weight() {
-  char weight_data[7];
-  String tmp;
-  bool finish = false;
-  byte temp;
-  long start;
-  uint16_t pos;
-  start = millis();
-  while(!Serial.available() && !finish) {
-    if (millis()-start > MAX_WEIGHT_WAIT_TIME) {
-      finish = true;
-    }
-  }
-  if (Serial.available() && !finish) {
-    pos = 0;
-    while( !finish) {  // wait for the weight to steady up,then read the next 7 bytes that will hold the actual weight
-      temp = Serial.read();
-      finish = ( temp == 0x1c || temp== 0x1b || pos > MAX_BYTES_WRONG);
-      pos++;
-    }
-    Serial.readBytes(weight_data, 7);
-    for (byte i=0; i < 6; i++) {
-      tmp += weight_data[i];
-    }
-    if (weight_data[6] == 0x1B || weight_data[6]==0x1C) {
-      measuredWeight = tmp.toInt();
-    } else {
-      measuredWeight = -1;
-    }
-  } else {
-    measuredWeight = -1;
-  }
 }
 
 void open_barrier() {
@@ -274,9 +222,6 @@ void send_to_server() {
   memcpy(tmp+sizeof(whos_entering), intTmp, sizeof(intTmp));
   dec_to_str(intTmp, measuredWeight, sizeof(measuredWeight));
   memcpy(tmp+1+4+1, intTmp, sizeof(intTmp));
-#ifdef DEBUG
-  Serial.println(tmp);
-#endif
   wifi.write(tmp);
 }
 
@@ -378,7 +323,7 @@ void do_known_beeps() {
     delay(80);
   }
 }
-
+/*
 #ifdef DEBUG
 void serialOptions() {
   byte readed[2];
@@ -430,7 +375,7 @@ void debug_store_card(byte *card_data) {
     }
   }
 }
-#endif
+#endif*/
 
 void get_tag_data() {
   char tag[10];
@@ -439,17 +384,9 @@ void get_tag_data() {
   wifi.readCardData(tag, sizeof(tag));
   struct card_block card;
   tagp = tag;
-#ifdef DEBUG
-  Serial.print(F("Card Data:"));
-  Serial.println(tagp);
-#endif
   memcpy(card.card_uid, tagp, 4);
   tagp = tag + 4;
   memcpy((void *)card.card_number, tagp, 1);
-#ifdef DEBUG
-  Serial.println(tagp);
-  Serial.println(pos);
-#endif
   pos = tag[4];
   if (tag[5]==0) {
     store_card(card, pos);
