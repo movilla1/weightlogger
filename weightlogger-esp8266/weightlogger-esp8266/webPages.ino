@@ -84,8 +84,12 @@ void handleTags() { //handle tags operations
   if (server.hasArg("tagid") && server.hasArg("position")) {
     String tagID = server.arg("tagid");
     String pos = server.arg("position");
-    char remove = server.arg("rm")[0];
-    tag_strings_to_array(tagID, pos, remove);
+    String rmv = server.arg("rm");
+    String removed = "0";
+    if (rmv == "on") {
+      removed = "1";
+    }
+    tag_strings_to_array(tagID, pos, removed);
     message = "Tag received correctly";
   }
   change_selecteds(SETUP_TAGS);
@@ -140,20 +144,16 @@ void handleAjaxMessages() {
   server.send(200, "application/json", content);
 }
 
-void tag_strings_to_array(String id, String pos, char rmv) {
+void tag_strings_to_array(String id, String pos, String rmv) {
   char tmp;
+  char posBuffer[4];
   char tag_pos = 0;
-  char cpos = (char)pos.toInt();
-  for (int c = 0; c < id.length(); c += 2) {
-    tmp = id[c] > 0x39 ? ((id[c] - 'A') + 10) * 16 : (id[c] - '0') * 16;
-    tmp += id[c+1] > 0x39 ? ((id[c+1] - 'A') + 10) : (id[c+1] - '0');
-    tag[tag_pos] = tmp;
-    tag_pos ++;
-    tag_pos %= 4; //tag consists of only 4 bytes
-  }
-  tag[4] = cpos;
-  tag[5] = rmv;
-  tag[6] = 0x00;
+  char cpos = pos.toInt() & 0xFF;
+  memset(tag, 0, sizeof(tag));
+  strcat(tag, id.c_str());
+  sprintf(posBuffer, "%03d", pos.toInt());
+  strcat(tag, posBuffer);
+  strcat(tag, rmv.c_str());
   tagReady = true;
 }
 
@@ -170,8 +170,12 @@ void handleSentTag() {
   }
   String tagid = server.arg("ti");
   String pos = server.arg("po");
-  char remove = server.arg("rm")[0];
-  tag_strings_to_array(tagid, pos, remove);
+  String remove = server.arg("rm");
+  String rmv = "0";
+  if (remove == "on") {
+    rmv = "1";
+  }
+  tag_strings_to_array(tagid, pos, rmv);
   server.send(200, "text/plain", "OK");
 }
 

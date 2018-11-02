@@ -37,6 +37,12 @@
 #define MAX_BYTES_WRONG 1024 // if we can't get a steady weight after 1K bytes received then timeout.
 #define LCD_ADDRESS 0x27
 #define LIGHT_DURATION 4000 // 4 seconds with the light on.
+#define POLLING_INTERVAL 500
+#define TAG_UID_START 0
+#define TAG_UID_END 8
+#define TAG_POS_START 9
+#define TAG_POS_END 11
+#define TAG_PACKET_SIZE 13 // tag example: 96484C4F, 000-200, 0/1
 /**
  * RF Protocol Constants
  */

@@ -3,7 +3,7 @@
  * shared in the whole project
  */
 void show_error(uint8_t error_code) {
-  uint8_t blinks;
+  byte blinks;
   lcd.clear();
   switch(error_code) {
     case ERROR_RFID:
@@ -22,10 +22,10 @@ void show_error(uint8_t error_code) {
       blinks = 1;
       break;
   }
-  for (uint8_t i; i < blinks; i++) {
-    digitalWrite(BUZZER, 0); //turn off the LED
+  for (byte i=0; i < blinks; i++) {
+    digitalWrite(BUZZER, LOW); //turn off the BUZZER
     delay(300);
-    digitalWrite(BUZZER, 1);
+    digitalWrite(BUZZER, HIGH);
     delay(300);
   }
   delay(500); //wait 1/2 second between displays at least;

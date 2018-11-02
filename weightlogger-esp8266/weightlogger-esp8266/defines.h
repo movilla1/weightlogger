@@ -9,6 +9,10 @@
 #define GET_SERVER_IP 16
 #define STATUS_REQ 32
 
+#define LED D4
+#define WPS_BUTTON D5
+
+#define TAG_PACKET_SIZE 12 // tag example: 96484C4F, 000-200, 0/1
 #define MAX_SRV_CLIENTS 3
 #define MAX_URL_LEN 200
 #define SERVER_URL_STORAGE_ADDR 0
@@ -23,4 +27,5 @@
 #define SETUP_IP_ADR 1
 #define SETUP_TAGS 2
 #define SETUP_PASS 3
+
 #endif

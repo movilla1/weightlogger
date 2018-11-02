@@ -34,9 +34,11 @@ void setup() {
   sys_state = READY;
   whos_entering = 0;
   backlightStart = 0;
+  lastPoll = 0;
   delay(5000);
 #ifdef WITH_WIFI
-  if (wifi.begin(115200)) {
+  Serial.begin(115200, SERIAL_8N1);
+  if (wifi.begin()) {
     lcd_show_ip();
   } else {
     sys_state = ERROR_WIFI;
@@ -46,7 +48,6 @@ void setup() {
 
 void loop() {
   bool tmp;
-  char polled;
   check_lcd_light();
   switch(sys_state) {
     case ERROR_WIFI:
@@ -60,10 +61,7 @@ void loop() {
       if (getID()) {
         sys_state = READ_RFID;
       } else {
-        polled = wifi.poll();
-        if (polled == 'T') {
-          sys_state = GET_TAG_DATA;
-        }
+        check_for_new_tag();
       }
       break;
     case READ_RFID:
@@ -217,20 +215,23 @@ void send_to_server() {
   long time = enteringTime.secondstime();
   memset(tmp, 0, sizeof(tmp));
   memset(intTmp, 0, sizeof(intTmp));
-  memcpy(tmp, &whos_entering, sizeof(whos_entering));
+  dec_to_str(intTmp, whos_entering, sizeof(whos_entering));
+  strcat(tmp, intTmp);
   dec_to_str(intTmp, time, sizeof(time));
-  memcpy(tmp+sizeof(whos_entering), intTmp, sizeof(intTmp));
+  strncat(tmp, intTmp, sizeof(intTmp));
   dec_to_str(intTmp, measuredWeight, sizeof(measuredWeight));
-  memcpy(tmp+1+4+1, intTmp, sizeof(intTmp));
-  wifi.write(tmp);
+  strncat(tmp, intTmp, sizeof(intTmp));
+  wifi.sendEntry(tmp);
 }
 
 void send_intrussion_attemp_to_server(){
-  char tmp[20];
+  char tmp[10];
   long time = enteringTime.secondstime();
   memset(tmp, 0, sizeof(tmp));
-  memcpy(tmp+sizeof(whos_entering)+1, &time, sizeof(time) );
-  wifi.write(tmp);
+  memcpy(tmp, readCard, sizeof(readCard));
+  memcpy(tmp+4, &time, sizeof(time) );
+  const byte dataLength = sizeof(tmp) + sizeof(readCard) + sizeof(time);
+  wifi.sendIntrussionAttemp(tmp);
 }
 
 void alertUnknown() {
@@ -242,7 +243,6 @@ void alertUnknown() {
     digitalWrite(BUZZER, LOW);
     delay(150);
   }
-
 }
 
 void lcd_show_ready() {
@@ -258,13 +258,13 @@ void lcd_show_ready() {
 
 void lcd_show_ip() {
 #ifdef WITH_WIFI  
-  char tmp[17];
+  char ipaddress[18];
   char text[32];
-  memset(tmp,0x00 ,sizeof(tmp));
+  memset(ipaddress,0x00 ,sizeof(ipaddress));
   memset(text, 0x00, sizeof(text));
   strcat(text, "Station IP......");
-  wifi.get_ip(tmp);
-  strcat(text, tmp);
+  wifi.get_ip(ipaddress);
+  strcat(text, ipaddress);
   lcd_show_message(text);
   delay(2500); //2 1/2 seconds delay to read the ip
   lcd.clear();
@@ -323,72 +323,23 @@ void do_known_beeps() {
     delay(80);
   }
 }
-/*
-#ifdef DEBUG
-void serialOptions() {
-  byte readed[2];
-  byte cmd;
-  byte buff[16];
-  byte count;
-
-  cmd = Serial.read();
-  Serial.println("ACK");
-  switch(cmd) {
-    case 'S':
-      Serial.readBytes(readed,2);
-      Serial.println("Scan");
-      debug_store_card(readed);
-      Serial.println("Ready");
-      break;
-    case 'D':
-      for (uint16_t i = 0; i < 0x400; i++)
-      {
-        buff[0] = EEPROM.read(i);
-        Serial.print(buff[0],HEX);
-        Serial.print(" ");
-        if (i % 20 == 0) {
-          Serial.println(" |");
-        }
-      }
-      Serial.println("Dump finished");
-      break;
-  }
-}
-
-void debug_store_card(byte *card_data) {
-  bool finish = false;
-  bool timeout = false;
-  long tstart;
-  tstart = millis();
-  struct card_block card;
-  while (!finish || timeout)
-  {
-    if (millis() - tstart > MAX_CARD_WAIT_TIME)
-    {
-      timeout = true;
-    }
-    if (getID()) {
-      card.card_number = card_data[1];
-      memcpy(card.card_uid, readCard, 4);
-      store_card(card, card_data[0]);
-      finish = true;
-    }
-  }
-}
-#endif*/
 
 void get_tag_data() {
-  char tag[10];
+  char tag[TAG_PACKET_SIZE];
+  char result[4];
   char *tagp;
   char pos;
-  wifi.readCardData(tag, sizeof(tag));
+  char remove;
+
+  wifi.readCardData(tag, sizeof(tag)-1);
   struct card_block card;
   tagp = tag;
-  memcpy(card.card_uid, tagp, 4);
-  tagp = tag + 4;
-  memcpy((void *)card.card_number, tagp, 1);
-  pos = tag[4];
-  if (tag[5]==0) {
+  pos = tag_string_to_bytes(tag, result, &remove);
+#ifdef DEBUG
+  debug_lcd(result, 4);
+#endif
+  memcpy((void *)pos, tagp, 1);
+  if (remove == '0') {
     store_card(card, pos);
   } else {
     erase_card(pos);
@@ -415,4 +366,45 @@ void dec_to_str (char* str, uint32_t val, size_t digits)
     val/=10;
   }
   str[i-1] = '\0'; // assuming you want null terminated strings?
+}
+
+void check_for_new_tag() {
+  char polled;
+  if (millis() - lastPoll > POLLING_INTERVAL) {
+    polled = wifi.poll();
+    lcd.print(polled);
+    if (polled == 'T') {
+      sys_state = GET_TAG_DATA;
+    }
+    lastPoll = millis();
+  }
+}
+
+void debug_lcd(char *data, char datalen) {
+  lcd.clear();
+  lcd.backlight();
+  for (byte p=0; p < datalen; p++) {
+    lcd.print(data[p], HEX);
+  }
+  delay(3000);
+}
+
+byte tag_string_to_bytes(char *id, char *tag_uid, char *remove) {
+  char tag_pos = 0;
+  byte tmp;
+  for (byte c = TAG_UID_START; c < TAG_UID_END; c += 2) {
+    tmp = id[c] > 0x39 ? ((id[c] - 'A') + 10) * 16 : (id[c] - '0') * 16;
+    tmp += id[c+1] > 0x39 ? ((id[c+1] - 'A') + 10) : (id[c+1] - '0');
+    tag_uid[tag_pos] = tmp;
+    tag_pos ++;
+    tag_pos %= 4; //tag consists of only 4 bytes
+  }
+  tag_pos = 0;
+  tmp = 0;
+  for (byte c = TAG_POS_START; c < TAG_POS_END; c++) {
+    tmp += id[c]*10^tag_pos; 
+    tag_pos ++;
+  }
+  remove[0] = id[TAG_POS_END+1];
+  return tmp;
 }

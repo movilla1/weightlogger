@@ -4,6 +4,7 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
 #include <FS.h>
+#include <stdlib.h>
 #include "defines.h"
 
 byte sysState;
@@ -11,13 +12,16 @@ ESP8266WebServer server(8010);  //  port 8010 = web, own
 char selecteds[] = {0,0,0,0};
 String message;
 bool tagReady;
-char tag[7];
+bool wps_started;
+char tag[TAG_PACKET_SIZE];
 
 void setup() {
   tagReady = false;
   String ssid = WiFi.SSID();
   Serial.begin(115200);
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(LED, OUTPUT);
+  pinMode(WPS_BUTTON, INPUT_PULLUP);
+  digitalWrite(LED, LOW);
   WiFi.mode(WIFI_STA);
   
   if (ssid.length() > 1) { // if we have the ssid set, wps ran before, let's use it
@@ -25,6 +29,7 @@ void setup() {
     while (WiFi.status() == WL_DISCONNECTED) {          // last saved credentials
       delay(500);
     }
+    digitalWrite(LED, HIGH); //turn off the light, we are online.
   }
   SPIFFS.begin();
   server.on("/", handleRoot);
@@ -43,12 +48,35 @@ void setup() {
   server.collectHeaders(headerkeys, headerkeyssize);
   server.begin();  // our web server
   EEPROM.begin(512); //512 Bytes for EEPROM storage
+  wps_started = false;
 }
 
 void loop() {
-  char cmd;
+  byte wps_pushed;
   server.handleClient();
- 
+  wps_pushed = digitalRead(WPS_BUTTON);
+  if (wps_pushed == 0 && wps_started == false)  {
+    delay(1500);
+    wps_pushed = digitalRead(WPS_BUTTON);
+    if ( wps_pushed == 0 ) {
+      wps_started = true;
+      digitalWrite(LED, HIGH);
+      Serial.println("WPS START");
+    }
+  }
+  if (wps_started) {
+    //do the WPS procedure
+    if (do_wps_setup()) {
+      digitalWrite(LED, LOW);
+      wps_started = false;
+    }
+  } else {
+    check_serial();
+  }
+}
+
+void check_serial() {
+  char cmd;
   if (Serial.available()) {
     cmd = Serial.read(); //commands are single chars
     switch (cmd) {
@@ -63,20 +91,18 @@ void loop() {
         break;
       case 'S':
         //send data to server
-        if (transmit_to_server()) {
+        if (transmit_to_server(false)) {
           Serial.println("OK");
         } else {
           Serial.println("FAIL");
         }
         break;
-      case 'W':
-        //do the WPS procedure
-        if (do_wps_setup()) {
+      case 'N':
+        if (transmit_to_server(true)) {
           Serial.println("OK");
         } else {
           Serial.println("FAIL");
         }
-        break;
       case 'Q':
         Serial.println("INIOK");
         break;
@@ -91,38 +117,49 @@ void send_status() {
   }
   switch (WiFi.status()) {
     case WL_CONNECTED:
-      Serial.println("O");
+      Serial.write('O');
       break;
     case WL_DISCONNECTED:
-      Serial.println("N");
+      Serial.write('N');
       break;
     default:
-      Serial.println("U");
+      Serial.print('U');
       break;
   }
 }
 
-bool transmit_to_server() {
+bool transmit_to_server(bool intrussion) {
   HTTPClient http;
   char url[MAX_URL_LEN+1];
+  char device[9];
   char tmp;
-  String dat="data=";
+  String dat;
+  uint32 device_id = system_get_chip_id();
+  ltoa(device_id, device, 16); //get the HEX representation for the device id
+  dat = "device=";
+  dat += device;
+  if (intrussion) {  
+    dat += "&intrussion=1";
+  }
+  dat += "&data=";
   const char len = MAX_URL_LEN;
   read_data_from_eeprom(url, len, SERVER_URL_STORAGE_ADDR);
   tmp = 0;
   while(tmp != '\n') {
     if (Serial.available()) {
       tmp = Serial.read();
-      if (tmp > 0 && tmp!='\n')
+      if (tmp > 0 && tmp!='\n' && tmp!='\r')
         dat += tmp;
     }
   }
-  dat += "&auth=32\r\n";
-  http.writeToStream(&Serial);
+  dat += "&auth=32";
   http.begin(url);
+  http.addHeader("User-Agent", "ElcanWeight/20181030 Gecko/20100101 Firefox/53.0");
+  http.addHeader("Accept-Language", "en-US,en;q=0.5");
+  http.addHeader("Pragma", "no-cache");
+  http.addHeader("Cache-Control", "no-cache");
   http.addHeader("Content-Type","application/x-www-form-urlencoded");
   int httpCode = http.POST(dat);
-  String payload = http.getString();
   http.end();
   return httpCode == 200;
 }

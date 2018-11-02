@@ -15,6 +15,7 @@ uint16_t measuredWeight; // Stores weight in ram
 DateTime enteringTime;  //last time readed on the RTC
 DateTime timerStarted;
 long backlightStart;
+long lastPoll;
 ElcanWifi wifi;
 
 struct card_block {

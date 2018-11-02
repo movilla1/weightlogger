@@ -18,10 +18,10 @@ ElcanWifi::ElcanWifi() {
   _error = false;
 }
 
-bool ElcanWifi::begin(long speed) {
+bool ElcanWifi::begin() {
   char received[20];
   byte count;
-  Serial.begin(speed, SERIAL_8N1);
+  empty_serial_buffer();
   Serial.write("Q");
   Serial.flush();
   count = Serial.readBytesUntil("\r", received, INITIALIZATION_STR_LEN);
@@ -30,6 +30,8 @@ bool ElcanWifi::begin(long speed) {
   if (strcmp(received, "INIOK") != 0) {
     _error = 100;
   }
+  delay(1);
+  empty_serial_buffer();
   return (_error == 0);
 }
 
@@ -39,8 +41,7 @@ void ElcanWifi::get_ip(char *result) {
   empty_serial_buffer();
   Serial.write("I");
   Serial.flush();
-  pos = Serial.readBytesUntil("\r", result, IP_ADDRESS_LEN);
-  empty_serial_buffer();
+  pos = Serial.readBytesUntil('\r', result, IP_ADDRESS_LEN);
   result[pos] = 0x00;
 }
 
@@ -48,16 +49,14 @@ bool ElcanWifi::is_error() {
   return (_error > 0);
 }
 
-int ElcanWifi::write(char *data) {
-  int pos = 0;
-  int dataLen = strlen(data);
+byte ElcanWifi::sendEntry(char *data) {
+  byte pos = 0;
   
-  Serial.write("T");
-  while (pos < dataLen) {
+  Serial.write("S");
+  for (byte pos = 0; pos < ENTRY_PACKET_SIZE; pos++) {
     Serial.write(data[pos]);
-    pos++;
   }
-  Serial.write("\n");
+  Serial.write(EOL);
   Serial.flush();
   return pos;
 }
@@ -68,17 +67,23 @@ int ElcanWifi::available() {
 
 char ElcanWifi::poll() {
   char tmp;
+  byte count = 0;
+  empty_serial_buffer();
   Serial.write("P");
+  Serial.flush();
+  while(!Serial.available() && count++ < 255);
   tmp = Serial.read();
   return tmp;
 }
 
-void ElcanWifi::readCardData(char *result, char len) {
+void ElcanWifi::readCardData(char *result, char maxLen) {
   char pos;
-  memset(result, 0, len);
+  memset(result, 0, maxLen);
   Serial.write("T");
   Serial.flush();
-  pos = Serial.readBytesUntil("\r",result, len);
+  delay(1);
+  pos = Serial.readBytesUntil("\r", result, maxLen);
+  empty_serial_buffer();
   result[pos] = 0x00;
 }
 
@@ -86,4 +91,16 @@ void ElcanWifi::empty_serial_buffer() {
   while(Serial.available()) {
     char t = Serial.read();
   }
+}
+
+void ElcanWifi::sendIntrussionAttemp(char *data) {
+  char text[32];
+  memset(text,0,sizeof(text));
+  text[0]='N';
+  memcpy(text+1, data, INTRUSSION_PACKET_SIZE); // 8 bytes: 4 cardID, 4 timestamp
+  for (char b=0; b < INTRUSSION_PACKET_SIZE+1; b++) {
+    Serial.write(text[b]);
+  }
+  Serial.write(EOL);
+  Serial.flush();
 }
