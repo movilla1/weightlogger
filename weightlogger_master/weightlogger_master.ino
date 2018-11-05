@@ -233,21 +233,24 @@ void do_known_beeps() {
 }
 
 void get_tag_data() {
-  char tag[TAG_PACKET_SIZE];
-  char result[4];
+  char tagPacket[TAG_PACKET_SIZE];
   char pos;
-  char remov;
+  byte result[4];
+  byte remov;
 
-  memset(tag, 0, sizeof(tag));
-  wifi.readCardData(tag, sizeof(tag));
+  memset(tagPacket, 0, sizeof(tagPacket));
+  wifi.readCardData(tagPacket, sizeof(tagPacket));
   struct card_block card;
-  pos = tag_string_to_bytes(tag, result, &remov);
+  pos = tag_string_to_bytes(tagPacket, result, &remov);
+  memcpy(card.card_uid, result, sizeof(result));
+  card.card_number = pos;
 #ifdef DEBUG
   Serial.print("#");
-  Serial.println(tag);
-  Serial.flush();
-  Serial.print("#");
-  Serial.println(result);
+  for(char c=0; c < 4; c++) {
+    Serial.print(result[c], HEX);
+  }
+  Serial.print(F("\n"));
+  Serial.println(pos, DEC);
   Serial.flush();
 #endif
   if (remov == '0') {
@@ -296,20 +299,19 @@ void check_wifi() {
   }
 }
 
-byte tag_string_to_bytes(char *tagstring, char *tag_uid, char *remove) {
-  char tag_pos = 0;
-  char posBuf[4];
+byte tag_string_to_bytes(char *tagstring, byte *tag_uid, byte *remove) {
+  byte posBuf[4];
   byte tmp;
   memset(posBuf,0,sizeof(posBuf));
   hex_string_to_byte_array(tagstring, posBuf, TAG_UID_START, TAG_UID_END);
   memcpy(tag_uid, posBuf, sizeof(posBuf));
   hex_string_to_byte_array(tagstring, posBuf, TAG_POS_START, TAG_POS_END);
   tmp = posBuf[0]; //after converting the pos HEX to bin, it'll use 1 byte only.
-  remove[0] = id[TAG_REM_START];
+  remove[0] = tagstring[TAG_REM_START];
   return tmp;
 }
 
-void hex_string_to_byte_array(char *src, char *out_array, byte start, byte end) {
+void hex_string_to_byte_array(char *src, byte *out_array, byte start, byte end) {
   char pos = 0;
   char tmp;
   for (byte c = start; c < end; c += 2) {

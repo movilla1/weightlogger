@@ -65,7 +65,6 @@ void loop() {
     if ( wps_pushed == 0 ) {
       wps_started = true;
       digitalWrite(LED, HIGH);
-      Serial.println("WPS START");
     }
   }
   if (wps_started) {
@@ -182,10 +181,9 @@ bool transmit_to_server(bool intrussion) {
 }
 
 bool do_wps_setup() {
-  digitalWrite(LED_BUILTIN, LOW);
   bool wpsSuccess = WiFi.beginWPSConfig();
   if(wpsSuccess) {
-    digitalWrite(LED_BUILTIN, HIGH);
+    digitalWrite(LED_BUILTIN, LOW);
     return true;
   } else {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -240,11 +238,12 @@ void eeprom_store(String data, int address) {
  * Use this to send images or big files to the client
  */
 bool loadFromSpiffs(String path){
-  String dataType = "text/plain";
+  String dataType = "application/octet-stream";
   if (!SPIFFS.exists(path)) {
     return false;
   }
-  if(path.endsWith(".src")) path = path.substring(0, path.lastIndexOf("."));
+  path = path.substring(0, path.lastIndexOf("."));
+  if(path.endsWith(".src")) dataType = "text/plain";
   else if(path.endsWith(".html")) dataType = "text/html";
   else if(path.endsWith(".css")) dataType = "text/css";
   else if(path.endsWith(".js")) dataType = "text/javascript";

@@ -38,7 +38,7 @@
 #define MAX_BYTES_WRONG 1024 // if we can't get a steady weight after 1K bytes received then timeout.
 #define LCD_ADDRESS 0x27
 #define LIGHT_DURATION 4000 // 4 seconds with the light on.
-#define POLLING_INTERVAL 500
+#define POLLING_INTERVAL 1000
 #define TAG_UID_START 0
 #define TAG_UID_END 8
 #define TAG_POS_START 9
@@ -51,3 +51,5 @@
 #define MAX_CARD_WAIT_TIME 10000 //10 seconds
 
 #define SCALE_I2C_ADDR 0x20
+
+#define CLEAR_SERIAL while(Serial.available()) { char t = Serial.read(); }

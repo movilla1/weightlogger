@@ -37,13 +37,14 @@ void adjust_rtc() {
   char date[11];
   char time[9];
   char pos = 0;
+  char tmp;
   bool valid_stamp = false;
   DateTime dt_adj;
   memset(dateString, 0, sizeof(dateString));
   while (Serial.available()) {
     tmp = Serial.read();
-    if (tmp!='\r') {
-      dateString[pos] = tmp
+    if (tmp != '\r') {
+      dateString[pos] = tmp;
       pos ++;
       pos %= sizeof(dateString);
     } else {
@@ -52,13 +53,22 @@ void adjust_rtc() {
     }
   }
   if (valid_stamp) {
-    split_date_time(dateString, date, time)
+    split_date_time(dateString, date, time);
+#ifdef DEBUG
+    Serial.print("#");
+    Serial.println(date);
+    Serial.print("#");
+    Serial.println(time);
+#endif
     dt_adj = new DateTime(date, time);
     rtc.adjust(dt_adj);
   }
-  empty_serial_buffer();
+  CLEAR_SERIAL
 }
 
 void split_date_time(char *stamp, char *date, char *time) {
-  
+  char pos = strchr(stamp, ' ');
+  char len = strlen(stamp);
+  memcpy(date, stamp, pos - 1);
+  memcpy(time, stamp+pos+1, (len-pos));
 }
