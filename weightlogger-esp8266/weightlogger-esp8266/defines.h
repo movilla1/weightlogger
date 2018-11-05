@@ -25,7 +25,8 @@
 
 #define DASHBOARD 0
 #define SETUP_IP_ADR 1
-#define SETUP_TAGS 2
-#define SETUP_PASS 3
+#define SETUP_TIME 2
+#define SETUP_TAGS 3
+#define SETUP_PASS 4
 
 #endif

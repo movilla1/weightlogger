@@ -151,7 +151,7 @@ void tag_strings_to_array(String id, String pos, String rmv) {
   char cpos = pos.toInt() & 0xFF;
   memset(tag, 0, sizeof(tag));
   strcat(tag, id.c_str());
-  sprintf(posBuffer, "%03d", pos.toInt());
+  sprintf(posBuffer, "%02X", pos.toInt());
   strcat(tag, posBuffer);
   strcat(tag, rmv.c_str());
   tagReady = true;
@@ -206,5 +206,22 @@ void handlePasswords() {
   }
   change_selecteds(SETUP_PASS);
   String page = render("/passwords.html", "Password Management", selecteds, true);
+  server.send(200, "text/html", page);
+}
+
+void handleTimeSetting() {
+  if (!checkAuth()){
+    return;
+  }
+  message = "";
+  if (server.hasArg("date")) {
+    String date = server.arg("date");
+    String time = server.arg("time");
+    timeSet = date + " " + time;
+    timeReady = true;
+    message = "Time set to " + timeSet;
+  }
+  change_selecteds(SETUP_TIME);
+  String page = render("/time.html", "Time Adjust", selecteds, true);
   server.send(200, "text/html", page);
 }

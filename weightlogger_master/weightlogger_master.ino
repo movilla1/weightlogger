@@ -61,7 +61,7 @@ void loop() {
       if (getID()) {
         sys_state = READ_RFID;
       } else {
-        check_for_new_tag();
+        check_wifi();
       }
       break;
     case READ_RFID:
@@ -105,26 +105,13 @@ void loop() {
       get_tag_data();
       sys_state = READY;
       break;
+    case ADJUST_TIME:
+      adjust_rtc();
+      sys_state = READY;
+      break;
   }
 }
 
-uint8_t getID() {
-  // Getting ready for Reading PICCs
-  if ( ! mfrc522.PICC_IsNewCardPresent()) { //If a new PICC placed to RFID reader continue
-    return 0;
-  }
-  if ( ! mfrc522.PICC_ReadCardSerial()) {   //Since a PICC placed get Serial and continue
-    return 0;
-  }
-  // There are Mifare PICCs which have 4 byte or 7 byte UID care if you use 7 byte PICC
-  // I think we should assume every PICC as they have 4 byte UID
-  // Until we support 7 byte PICCs
-  for ( uint8_t i = 0; i < 4; i++) {  //
-    readCard[i] = mfrc522.uid.uidByte[i];
-  }
-  mfrc522.PICC_HaltA(); // Stop reading
-  return 1;
-}
 /**
  * Readed card must be checked agains the known ones
  */
@@ -138,15 +125,6 @@ bool check_card_and_act() {
     sys_state = UNKNOWN_CARD;
   }
   return ret;
-}
-
-/**
- * Read the time and store it in memory
- */
-bool read_rtc_value() {
-  uint32_t tmp = 0;
-  enteringTime = rtc.now();
-  return true;
 }
 
 void open_barrier() {
@@ -245,76 +223,6 @@ void alertUnknown() {
   }
 }
 
-void lcd_show_ready() {
-  char dateString[15];
-  lcd.setCursor(0,0);
-  DateTime tstamp = rtc.now();
-  sprintf(dateString, "%02d/%02d/%04d %02d:%02d", tstamp.day(), tstamp.month(),
-    tstamp.year(), tstamp.hour(), tstamp.minute());
-  lcd.print(dateString);
-  lcd.setCursor(0,1);
-  lcd.print(F("Esperando..."));
-}
-
-void lcd_show_ip() {
-#ifdef WITH_WIFI  
-  char ipaddress[18];
-  char text[32];
-  memset(ipaddress,0x00 ,sizeof(ipaddress));
-  memset(text, 0x00, sizeof(text));
-  strcat(text, "Station IP......");
-  wifi.get_ip(ipaddress);
-  strcat(text, ipaddress);
-  lcd_show_message(text);
-  delay(2500); //2 1/2 seconds delay to read the ip
-  lcd.clear();
-#else
-  lcd_show_message("Initialized");
-#endif
-}
-
-void lcd_show_allowed() {
-  lcd_show_message(F("Acceso permitido"));
-}
-
-void lcd_show_wait() {
-  lcd_show_message(F("Espere por favor..."));
-}
-
-void lcd_show_go() {
-  lcd_show_message(F("Avance..."));
-}
-
-void lcd_show_message(String message) {
-  byte len = 0;
-  lcd.clear();
-  lcd.backlight();
-  backlightStart = millis();
-  String msg = message;
-  if (msg.length() > 16) {
-    lcd.setCursor(0,0);
-    lcd.print(msg.substring(0,16));
-    lcd.setCursor(0,1);
-    lcd.print(msg.substring(16, msg.length()));
-  } else {
-    lcd.print(msg);
-  }
-}
-
-void check_lcd_light() {
-  if (backlightStart > 0) {
-    if (millis() - backlightStart > LIGHT_DURATION) {
-      lcd.noBacklight();
-      backlightStart = 0;
-    }
-  }
-}
-
-void lcd_light_on() {
-  lcd.backlight();
-  backlightStart = millis();
-}
-
 void do_known_beeps() {
   for (byte b=0; b<2; b++) {
     digitalWrite(BUZZER, HIGH);
@@ -327,19 +235,22 @@ void do_known_beeps() {
 void get_tag_data() {
   char tag[TAG_PACKET_SIZE];
   char result[4];
-  char *tagp;
   char pos;
-  char remove;
+  char remov;
 
-  wifi.readCardData(tag, sizeof(tag)-1);
+  memset(tag, 0, sizeof(tag));
+  wifi.readCardData(tag, sizeof(tag));
   struct card_block card;
-  tagp = tag;
-  pos = tag_string_to_bytes(tag, result, &remove);
+  pos = tag_string_to_bytes(tag, result, &remov);
 #ifdef DEBUG
-  debug_lcd(result, 4);
+  Serial.print("#");
+  Serial.println(tag);
+  Serial.flush();
+  Serial.print("#");
+  Serial.println(result);
+  Serial.flush();
 #endif
-  memcpy((void *)pos, tagp, 1);
-  if (remove == '0') {
+  if (remov == '0') {
     store_card(card, pos);
   } else {
     erase_card(pos);
@@ -368,43 +279,43 @@ void dec_to_str (char* str, uint32_t val, size_t digits)
   str[i-1] = '\0'; // assuming you want null terminated strings?
 }
 
-void check_for_new_tag() {
+void check_wifi() {
   char polled;
   if (millis() - lastPoll > POLLING_INTERVAL) {
     polled = wifi.poll();
     lcd.print(polled);
-    if (polled == 'T') {
-      sys_state = GET_TAG_DATA;
+    switch(polled) {
+      case 'T':
+        sys_state = GET_TAG_DATA;
+        break;
+      case 'R':
+        sys_state = ADJUST_TIME;
+        break;
     }
     lastPoll = millis();
   }
 }
 
-void debug_lcd(char *data, char datalen) {
-  lcd.clear();
-  lcd.backlight();
-  for (byte p=0; p < datalen; p++) {
-    lcd.print(data[p], HEX);
-  }
-  delay(3000);
+byte tag_string_to_bytes(char *tagstring, char *tag_uid, char *remove) {
+  char tag_pos = 0;
+  char posBuf[4];
+  byte tmp;
+  memset(posBuf,0,sizeof(posBuf));
+  hex_string_to_byte_array(tagstring, posBuf, TAG_UID_START, TAG_UID_END);
+  memcpy(tag_uid, posBuf, sizeof(posBuf));
+  hex_string_to_byte_array(tagstring, posBuf, TAG_POS_START, TAG_POS_END);
+  tmp = posBuf[0]; //after converting the pos HEX to bin, it'll use 1 byte only.
+  remove[0] = id[TAG_REM_START];
+  return tmp;
 }
 
-byte tag_string_to_bytes(char *id, char *tag_uid, char *remove) {
-  char tag_pos = 0;
-  byte tmp;
-  for (byte c = TAG_UID_START; c < TAG_UID_END; c += 2) {
-    tmp = id[c] > 0x39 ? ((id[c] - 'A') + 10) * 16 : (id[c] - '0') * 16;
-    tmp += id[c+1] > 0x39 ? ((id[c+1] - 'A') + 10) : (id[c+1] - '0');
-    tag_uid[tag_pos] = tmp;
-    tag_pos ++;
-    tag_pos %= 4; //tag consists of only 4 bytes
+void hex_string_to_byte_array(char *src, char *out_array, byte start, byte end) {
+  char pos = 0;
+  char tmp;
+  for (byte c = start; c < end; c += 2) {
+    tmp = src[c] > 0x39 ? ((src[c] - 'A') + 10) * 16 : (src[c] - '0') * 16;
+    tmp += src[c+1] > 0x39 ? ((src[c+1] - 'A') + 10) : (src[c+1] - '0');
+    out_array[pos] = tmp;
+    pos ++;
   }
-  tag_pos = 0;
-  tmp = 0;
-  for (byte c = TAG_POS_START; c < TAG_POS_END; c++) {
-    tmp += id[c]*10^tag_pos; 
-    tag_pos ++;
-  }
-  remove[0] = id[TAG_POS_END+1];
-  return tmp;
 }

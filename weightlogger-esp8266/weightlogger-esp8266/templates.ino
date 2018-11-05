@@ -21,11 +21,16 @@ String render(const String text, String title, char *selected, bool isFile, bool
       tpl = replace_tag(tpl,"[[active_server]]", "");
     }
     if (selected[2]==1) {
+      tpl = replace_tag(tpl,"[[active_time]]", "active");
+    } else {
+      tpl = replace_tag(tpl,"[[active_time]]", "");
+    }
+    if (selected[3]==1) {
       tpl = replace_tag(tpl,"[[active_tags]]", "active");
     } else {
       tpl = replace_tag(tpl,"[[active_tags]]", "");
     }
-    if (selected[3]==1) {
+    if (selected[4]==1) {
       tpl = replace_tag(tpl,"[[active_pass]]", "active");
     } else {
       tpl = replace_tag(tpl,"[[active_pass]]", "");

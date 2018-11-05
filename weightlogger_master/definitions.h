@@ -14,6 +14,7 @@
 #define WRITE_RECORD 128
 #define UNKNOWN_CARD 137
 #define GET_TAG_DATA 171
+#define ADJUST_TIME 193
 #define TIMED_WAIT 250
 
 /**
@@ -41,8 +42,9 @@
 #define TAG_UID_START 0
 #define TAG_UID_END 8
 #define TAG_POS_START 9
-#define TAG_POS_END 11
-#define TAG_PACKET_SIZE 13 // tag example: 96484C4F, 000-200, 0/1
+#define TAG_POS_END 10
+#define TAG_REM_START 11
+#define TAG_PACKET_SIZE 11 // tag example: 96484C4F, 00-C8 (0 to 200), 0/1
 /**
  * RF Protocol Constants
  */

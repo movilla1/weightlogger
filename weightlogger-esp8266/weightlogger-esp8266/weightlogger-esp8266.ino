@@ -9,9 +9,11 @@
 
 byte sysState;
 ESP8266WebServer server(8010);  //  port 8010 = web, own
-char selecteds[] = {0,0,0,0};
+char selecteds[] = {0,0,0,0,0};
 String message;
+String timeSet;
 bool tagReady;
+bool timeReady;
 bool wps_started;
 char tag[TAG_PACKET_SIZE];
 
@@ -40,6 +42,7 @@ void setup() {
   server.on("/ajax/msg", handleAjaxMessages);
   server.on("/receive/tag", handleSentTag);
   server.on("/password", handlePasswords);
+  server.on("/time", handleTimeSetting);
   server.onNotFound(handleNotFound);
   //here the list of headers to be recorded
   const char * headerkeys[] = {"User-Agent", "Cookie"} ;
@@ -49,6 +52,7 @@ void setup() {
   server.begin();  // our web server
   EEPROM.begin(512); //512 Bytes for EEPROM storage
   wps_started = false;
+  timeReady = false;
 }
 
 void loop() {
@@ -80,6 +84,9 @@ void check_serial() {
   if (Serial.available()) {
     cmd = Serial.read(); //commands are single chars
     switch (cmd) {
+      case 'M':
+        send_time_set();
+        break;
       case 'T':
         send_tag();
         break;
@@ -106,6 +113,12 @@ void check_serial() {
       case 'Q':
         Serial.println("INIOK");
         break;
+      case '#':
+        //this is a debug message, ignore
+        while(Serial.available()) {
+          char t = Serial.read();
+        }
+        break;
     }
   }
 }
@@ -115,12 +128,16 @@ void send_status() {
     Serial.print("T");
     return;
   }
+  if (timeReady) {
+    Serial.print("R");
+    return;
+  }
   switch (WiFi.status()) {
     case WL_CONNECTED:
-      Serial.write('O');
+      Serial.print('O');
       break;
     case WL_DISCONNECTED:
-      Serial.write('N');
+      Serial.print('N');
       break;
     default:
       Serial.print('U');
@@ -262,5 +279,13 @@ void send_tag() {
     Serial.println(tag);
     tagReady = false;
     memset(tag, 0, sizeof(tag)); //reset to 0
+  }
+}
+
+void send_time_set() {
+  if (timeReady) {
+    Serial.println(timeSet);
+    timeReady = false;
+    timeSet = "";
   }
 }
