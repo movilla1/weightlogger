@@ -43,6 +43,11 @@ void setup() {
   server.on("/receive/tag", handleSentTag);
   server.on("/password", handlePasswords);
   server.on("/time", handleTimeSetting);
+  server.serveStatic("/js/jquery-3.3.1.min.js", SPIFFS,"/js/jquery-3.3.1.min.js");
+  server.serveStatic("/js/bootstrap.min.js", SPIFFS, "/js/bootstrap.min.js");
+  server.serveStatic("/js/jquery-ui.min.js", SPIFFS, "/js/jquery-ui.min.js");
+  server.serveStatic("/css/bootstrap.min.css", SPIFFS, "/css/bootstrap.min.css");
+  server.serveStatic("/logo.jpg", SPIFFS, "/logo.jpg");
   server.onNotFound(handleNotFound);
   //here the list of headers to be recorded
   const char * headerkeys[] = {"User-Agent", "Cookie"} ;
@@ -238,21 +243,25 @@ void eeprom_store(String data, int address) {
  * Use this to send images or big files to the client
  */
 bool loadFromSpiffs(String path){
-  String dataType = "application/octet-stream";
+  String dataType;
   if (!SPIFFS.exists(path)) {
     return false;
   }
-  path = path.substring(0, path.lastIndexOf("."));
-  if(path.endsWith(".src")) dataType = "text/plain";
-  else if(path.endsWith(".html")) dataType = "text/html";
-  else if(path.endsWith(".css")) dataType = "text/css";
-  else if(path.endsWith(".js")) dataType = "text/javascript";
-  else if(path.endsWith(".jpg")) dataType = "image/jpeg";
+  dataType = getContentType(path);
   File dataFile = SPIFFS.open(path.c_str(), "r");
   if (server.streamFile(dataFile, dataType) != dataFile.size()) {
   } 
   dataFile.close();
   return true;
+}
+
+String getContentType(String filename) { // convert the file extension to the MIME type
+  if (filename.endsWith(".html")) return "text/html";
+  else if (filename.endsWith(".css")) return "text/css";
+  else if (filename.endsWith(".jpg")) return "image/jpeg";
+  else if (filename.endsWith(".js")) return "application/javascript";
+  else if (filename.endsWith(".ico")) return "image/x-icon";
+  return "text/plain";
 }
 /**
  * returns the stored pass for the users identified by the number
