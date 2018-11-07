@@ -17,7 +17,7 @@ class ElcanWifi {
     ElcanWifi();
     bool begin();
     int available();
-    char poll();
+    byte poll();
     void get_ip(char *result);
     bool is_error();
     byte sendEntry(char *data);

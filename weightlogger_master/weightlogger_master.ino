@@ -116,7 +116,8 @@ void loop() {
  * Readed card must be checked agains the known ones
  */
 bool check_card_and_act() {
-  byte ret = is_known_card(readCard);
+  byte ret;
+  ret = is_known_card(readCard);
   if (ret > 0) {
     sys_state = READ_RTC;
     whos_entering = ret;
@@ -131,48 +132,6 @@ void open_barrier() {
   digitalWrite(BARRERA, 1);
   delay(8000); //wait until the barrier acknowledges the open command
   digitalWrite(BARRERA, 0); //release Barrier switch
-}
-
-bool compare_card(byte card_id[4], struct card_block card) {
-  for (uint8_t i; i < 4; i++) {
-    if (card_id[i] != card.card_uid[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-byte is_known_card(byte card_id[]) {
-  struct card_block card;
-  bool finish = false;
-  int pos = 1; // Pos 0 is for the last written card number
-  byte ret_val = 0;
-  while(!finish) {
-    EEPROM_readBlock(pos, card);
-    if (compare_card(card_id, card)) {
-      finish = true;
-      ret_val = card.card_number;
-    }
-    if (pos > MAX_EEPROM_POSITION) {
-      finish = true;
-      ret_val = 0;
-    }
-    pos += sizeof(card);
-  }
-  return ret_val;
-}
-
-/**
- * Stores the card uid and card_number at the position indicated
- * positions are from 0 to 199
- */
-void store_card(struct card_block card, byte position) {
-  int pos = (5 * position) + 1;
-  if ( position < 200) {  //if we are not full capacity
-    EEPROM_writeBlock(pos, card); //store the card
-  } else {
-    sys_state = ERROR_INVALID;
-  }
 }
 
 void start_time_measurement() {
@@ -234,7 +193,7 @@ void do_known_beeps() {
 
 void get_tag_data() {
   char tagPacket[TAG_PACKET_SIZE];
-  char pos;
+  byte pos;
   byte result[4];
   byte remov;
 
@@ -244,49 +203,26 @@ void get_tag_data() {
   pos = tag_string_to_bytes(tagPacket, result, &remov);
   memcpy(card.card_uid, result, sizeof(result));
   card.card_number = pos;
-#ifdef DEBUG
-  Serial.print("#");
-  for(char c=0; c < 4; c++) {
-    Serial.print(result[c], HEX);
-  }
-  Serial.print(F("\n"));
-  Serial.println(pos, DEC);
-  Serial.flush();
-#endif
   if (remov == '0') {
+#ifdef DEBUG
+    Serial.print("#Storing @ ");
+    Serial.println(pos);
+#endif
+    delay(400);
     store_card(card, pos);
   } else {
+#ifdef DEBUG
+    Serial.println("#Erasing @ ");
+    Serial.println(pos);
+#endif
     erase_card(pos);
   }
 }
 
-void erase_card(char pos) {
-  if (pos > 200) //always inside the position limit.
-    return;
-  char ppos = (pos * sizeof(struct card_block)) + 1;
-  for (char i=0; i<sizeof(struct card_block); i++) {
-    EEPROM.write(ppos+i, 0xff);
-    delay(5); // 5mS between byte writes, to allow the data to be written
-  }
-}
-
-void dec_to_str (char* str, uint32_t val, size_t digits)
-{
-  size_t i=1;
-
-  for(; i<=digits; i++)
-  {
-    str[digits-i] = (char)((val % 10) + '0');
-    val/=10;
-  }
-  str[i-1] = '\0'; // assuming you want null terminated strings?
-}
-
 void check_wifi() {
-  char polled;
+  byte polled;
   if (millis() - lastPoll > POLLING_INTERVAL) {
     polled = wifi.poll();
-    lcd.print(polled);
     switch(polled) {
       case 'T':
         sys_state = GET_TAG_DATA;
@@ -309,15 +245,4 @@ byte tag_string_to_bytes(char *tagstring, byte *tag_uid, byte *remove) {
   tmp = posBuf[0]; //after converting the pos HEX to bin, it'll use 1 byte only.
   remove[0] = tagstring[TAG_REM_START];
   return tmp;
-}
-
-void hex_string_to_byte_array(char *src, byte *out_array, byte start, byte end) {
-  char pos = 0;
-  char tmp;
-  for (byte c = start; c < end; c += 2) {
-    tmp = src[c] > 0x39 ? ((src[c] - 'A') + 10) * 16 : (src[c] - '0') * 16;
-    tmp += src[c+1] > 0x39 ? ((src[c+1] - 'A') + 10) : (src[c+1] - '0');
-    out_array[pos] = tmp;
-    pos ++;
-  }
 }

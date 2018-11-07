@@ -65,8 +65,8 @@ int ElcanWifi::available() {
   return Serial.available();
 }
 
-char ElcanWifi::poll() {
-  char tmp;
+byte ElcanWifi::poll() {
+  byte tmp;
   byte count = 0;
   empty_serial_buffer();
   Serial.write("P");
@@ -88,8 +88,9 @@ void ElcanWifi::readCardData(char *result, char maxLen) {
 }
 
 void ElcanWifi::empty_serial_buffer() {
+  byte t;
   while(Serial.available()) {
-    char t = Serial.read();
+    t = Serial.read();
   }
 }
 

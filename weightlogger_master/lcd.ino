@@ -41,7 +41,6 @@ void lcd_show_go() {
 }
 
 void lcd_show_message(String message) {
-  byte len = 0;
   lcd.clear();
   lcd.backlight();
   backlightStart = millis();
@@ -68,13 +67,4 @@ void check_lcd_light() {
 void lcd_light_on() {
   lcd.backlight();
   backlightStart = millis();
-}
-
-void debug_lcd(char *data, char datalen) {
-  lcd.clear();
-  lcd.backlight();
-  for (byte p=0; p < datalen; p++) {
-    lcd.print(data[p]);
-  }
-  delay(3000);
 }
