@@ -2,6 +2,9 @@
 
 #define SCALE_I2C_ADDRESS 0x21
 #define MAX_WEIGHT_SIZE 7
+#define READY 0
+#define SEND_INIT_STR 16
+#define SEND_WEIGHT 64
 
 char weight[10];
 char wireBuffer[10];
