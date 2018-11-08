@@ -165,3 +165,13 @@ h4 {
   float: left;
   width: 83%
 }
+
+.timeslot {
+  position: relative;
+  font-family: Arial;
+  padding: 5px;
+  border-radius: 3px; 
+  background-color: #cccccc;
+  font-weight: bold;
+  border: none;
+}

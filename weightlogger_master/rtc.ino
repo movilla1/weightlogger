@@ -37,38 +37,59 @@ void adjust_rtc() {
   char date[11];
   char time[9];
   char pos = 0;
-  char tmp;
-  bool valid_stamp = false;
-  DateTime dt_adj;
+  DateTime stamp;
   memset(dateString, 0, sizeof(dateString));
-  while (Serial.available()) {
-    tmp = Serial.read();
-    if (tmp != '\r') {
-      dateString[pos] = tmp;
-      pos ++;
-      pos %= sizeof(dateString);
-    } else {
-      valid_stamp = true;
-      break;
-    }
-  }
-  if (valid_stamp) {
-    split_date_time(dateString, date, time);
+  memset(date, 0, sizeof(date));
+  memset(time, 0, sizeof(time));
+  Serial.write("M");
+  Serial.flush();
+  delay(1);
+  pos = Serial.readBytesUntil("\r", dateString, sizeof(dateString));
+  if (pos > 10) {
+    stamp = split_date_time(dateString);
 #ifdef DEBUG
     Serial.print("#");
-    Serial.println(date);
-    Serial.print("#");
-    Serial.println(time);
+    Serial.println(stamp.unixtime());
 #endif
-    dt_adj = new DateTime(date, time);
-    rtc.adjust(dt_adj);
+    rtc.adjust(stamp);
   }
   CLEAR_SERIAL
 }
 
-void split_date_time(char *stamp, char *date, char *time) {
-  char pos = strchr(stamp, ' ');
-  char len = strlen(stamp);
-  memcpy(date, stamp, pos - 1);
-  memcpy(time, stamp+pos+1, (len-pos));
+DateTime split_date_time(char *stamp) {
+  const char chp[2] = "-";
+  uint16_t year;
+  uint8_t month;
+  uint8_t day;
+  uint8_t hour;
+  uint8_t min;
+  uint8_t sec;
+  char *section;
+  section = strtok(stamp, chp);
+  year = atoi(section);
+  section = strtok(NULL, chp);
+  month = atoi(section);
+  section = strtok(NULL, chp);
+  day = atoi(section);
+  section = strtok(NULL, chp);
+  hour = atoi(section);
+  section = strtok(NULL, chp);
+  min = atoi(section);
+  section = strtok(NULL, chp);
+  sec = atoi(section);
+#ifdef DEBUG
+  Serial.print("#");
+  Serial.print(year);
+  Serial.print("-");
+  Serial.print(month);
+  Serial.print("-");
+  Serial.print(day);
+  Serial.print("#");
+  Serial.print(hour);
+  Serial.print(":");
+  Serial.print(min);
+  Serial.print(":");
+  Serial.println(sec);
+#endif
+  return DateTime(year, month, day, hour, min, sec);
 }

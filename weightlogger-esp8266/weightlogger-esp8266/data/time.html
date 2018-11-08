@@ -9,7 +9,13 @@
             <input type="text" id="datepicker" name="date" placeholder="Date" size="12" autocomplete="off"/>
             <br /><br />
             <label for="timepicker">Time</label>
-            <input type="text" name="time" id="timepicker" size="6" maxlength="10" autocomplete="off"/>
+            <select name="hour" id="hours" class="timeslot">
+            </select> :
+            <select name="minutes" id="minutes" class="timeslot">
+            </select> :
+            <select name="seconds" id="seconds" class="timeslot">
+            </select>
+            <br/><br/>
             <div class="wrapper">
               <span class="group-btn">
                 <button class="btn btn-primary btn-md"><span>Save</span>&nbsp;<i class="fas fa-save"></i></button>

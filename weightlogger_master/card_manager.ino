@@ -4,15 +4,16 @@
  * this function compares a card with the readed bytes,
  * if they match it returns true
  */
-bool compare_card(byte card_id[4], struct card_block card) {
-  for (uint8_t i; i < 4; i++) {
+bool compare_card(byte *card_one, byte *card_two) {
+  byte i;
+  for (i = 0; i < CARD_UID_SIZE; i++) {
 #ifdef DEBUG    
     Serial.print("#");
-    Serial.print(card_id[i], HEX);
+    Serial.print(card_one[i], HEX);
     Serial.print("-");
-    Serial.println(card.card_uid[i], HEX);
+    Serial.println(card_two[i], HEX);
 #endif
-    if (card_id[i] != card.card_uid[i]) {
+    if (card_one[i] != card_two[i]) {
       return false;
     }
   }
@@ -30,7 +31,7 @@ byte is_known_card(byte *card_id) {
   byte ret_val = 0;
   while(!finish) {
     EEPROM_readBlock(pos, card);
-    if (compare_card(card_id, card)) {
+    if (compare_card(card_id, card.card_uid)) {
       finish = true;
       ret_val = card.card_number;
     }

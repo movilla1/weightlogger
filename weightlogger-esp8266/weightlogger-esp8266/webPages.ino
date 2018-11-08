@@ -216,8 +216,10 @@ void handleTimeSetting() {
   message = "";
   if (server.hasArg("date")) {
     String date = server.arg("date");
-    String time = server.arg("time");
-    timeSet = date + " " + time;
+    String hours = server.arg("hour");
+    String minutes = server.arg("minutes");
+    String seconds = server.arg("seconds");
+    timeSet = date + "-" + hours + "-" + minutes + "-" + seconds;
     timeReady = true;
     message = "Time set to " + timeSet;
   }
