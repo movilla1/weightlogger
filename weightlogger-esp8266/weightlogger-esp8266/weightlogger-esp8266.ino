@@ -22,7 +22,7 @@ void setup() {
   String ssid = WiFi.SSID();
   Serial.begin(115200);
   pinMode(LED, OUTPUT);
-  pinMode(WPS_BUTTON, INPUT_PULLUP);
+  pinMode(WPS_BUTTON, INPUT);
   digitalWrite(LED, LOW);
   WiFi.mode(WIFI_STA);
   
@@ -69,18 +69,19 @@ void loop() {
     wps_pushed = digitalRead(WPS_BUTTON);
     if ( wps_pushed == 0 ) {
       wps_started = true;
-      digitalWrite(LED, HIGH);
+      digitalWrite(LED, LOW);
     }
   }
   if (wps_started) {
     //do the WPS procedure
     if (do_wps_setup()) {
-      digitalWrite(LED, LOW);
+      digitalWrite(LED, HIGH);
       wps_started = false;
     }
   } else {
     check_serial();
   }
+  delay(2); //to keep the stack working properly.
 }
 
 void check_serial() {

@@ -9,8 +9,8 @@
 #define GET_SERVER_IP 16
 #define STATUS_REQ 32
 
-#define LED D4
-#define WPS_BUTTON D5
+#define LED D1   // D4 in old wifi
+#define WPS_BUTTON D2  // D5 old wifi
 
 #define TAG_PACKET_SIZE 12 // tag example: 96484C4F, 000-200, 0/1
 #define MAX_SRV_CLIENTS 3

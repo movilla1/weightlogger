@@ -1,6 +1,6 @@
 #include "globals.h"
 
-void dec_to_str (char* str, uint32_t val, size_t digits)
+/*void dec_to_str (char* str, uint32_t val, size_t digits)
 {
   size_t i=1;
 
@@ -10,7 +10,7 @@ void dec_to_str (char* str, uint32_t val, size_t digits)
     val/=10;
   }
   str[i-1] = '\0'; // assuming you want null terminated strings?
-}
+}*/
 
 void hex_string_to_byte_array(char *src, byte *out_array, byte start, byte end) {
   char pos = 0;

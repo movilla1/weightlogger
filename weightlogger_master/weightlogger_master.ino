@@ -1,4 +1,4 @@
-#define DEBUG true
+//#define DEBUG true
 //#define WITH_WEIGHT true
 #define WITH_WIFI true
 #include <Wire.h>
@@ -32,7 +32,6 @@ void setup() {
   initialize_rtc();
   initialize_rfid();
   sys_state = READY;
-  whos_entering = 0;
   backlightStart = 0;
   lastPoll = 0;
   delay(5000);
@@ -120,7 +119,6 @@ bool check_card_and_act() {
   ret = is_known_card(readCard);
   if (ret > 0) {
     sys_state = READ_RTC;
-    whos_entering = ret;
     do_known_beeps();
   } else {
     sys_state = UNKNOWN_CARD;
@@ -147,27 +145,27 @@ bool check_elapsed_time() {
 }
 
 void send_to_server() {
-  char tmp[20];
-  char intTmp[4];
-  long time = enteringTime.secondstime();
+  char tmp[48];
+  char timestr[21];
   memset(tmp, 0, sizeof(tmp));
-  memset(intTmp, 0, sizeof(intTmp));
-  dec_to_str(intTmp, whos_entering, sizeof(whos_entering));
-  strcat(tmp, intTmp);
-  dec_to_str(intTmp, time, sizeof(time));
-  strncat(tmp, intTmp, sizeof(intTmp));
-  dec_to_str(intTmp, measuredWeight, sizeof(measuredWeight));
-  strncat(tmp, intTmp, sizeof(intTmp));
+  memset(timestr, 0, sizeof(timestr));
+  sprintf(timestr, "%d-%02d-%02d|%02d:%02d:%02d", enteringTime.year(), enteringTime.month(),
+    enteringTime.day(), enteringTime.hour(), enteringTime.minute(), enteringTime.second());
+  sprintf(tmp, "%02x%02x%02x%02x|", readCard[0], readCard[1], readCard[2], readCard[3]);
+  strcat(tmp, timestr);
+  strcat(tmp, "|");
+  strncat(tmp, measuredWeight, 6);
   wifi.sendEntry(tmp);
 }
 
 void send_intrussion_attemp_to_server(){
-  char tmp[10];
-  long time = enteringTime.secondstime();
-  memset(tmp, 0, sizeof(tmp));
-  memcpy(tmp, readCard, sizeof(readCard));
-  memcpy(tmp+4, &time, sizeof(time) );
-  const byte dataLength = sizeof(tmp) + sizeof(readCard) + sizeof(time);
+  char tmp[48];
+  char timestr[21];
+  enteringTime = rtc.now();
+  sprintf(timestr, "%d-%02d-%02d|%02d:%02d:%02d", enteringTime.year(), enteringTime.month(),
+    enteringTime.day(), enteringTime.hour(), enteringTime.minute(), enteringTime.second());
+  sprintf(tmp, "%02x%02x%02x%02x|", readCard[0], readCard[1], readCard[2], readCard[3]);
+  strcat(tmp, timestr);
   wifi.sendIntrussionAttemp(tmp);
 }
 
