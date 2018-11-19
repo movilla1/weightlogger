@@ -51,9 +51,10 @@ bool ElcanWifi::is_error() {
 
 byte ElcanWifi::sendEntry(char *data) {
   byte pos = 0;
-  
+  byte len = 0;
   Serial.write("S");
-  for (byte pos = 0; pos < ENTRY_PACKET_SIZE; pos++) {
+  len = strlen(data);
+  for (byte pos = 0; pos < len; pos++) {
     Serial.write(data[pos]);
   }
   Serial.write(EOL);
@@ -96,10 +97,11 @@ void ElcanWifi::empty_serial_buffer() {
 
 void ElcanWifi::sendIntrussionAttemp(char *data) {
   char text[32];
+  byte len = strlen(data);
   memset(text,0,sizeof(text));
   text[0]='N';
-  memcpy(text+1, data, INTRUSSION_PACKET_SIZE); // 8 bytes: 4 cardID, 4 timestamp
-  for (char b=0; b < INTRUSSION_PACKET_SIZE+1; b++) {
+  memcpy(text+1, data, len); // 8 bytes: 4 cardID, 4 timestamp
+  for (char b=0; b < len; b++) {
     Serial.write(text[b]);
   }
   Serial.write(EOL);

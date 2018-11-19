@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <Arduino.h>
 #include "scale_i2c.h"
-
+#define DEBUG 1
 ElcanScale::ElcanScale() {
   _error = 0;
   _i2c_address = 0;
@@ -24,6 +24,9 @@ bool ElcanScale::begin(byte addr) {
     }
   }
   tmp[pos+1] = 0x00;
+#ifdef DEBUG
+  Serial.println(tmp);
+#endif
   if (strcmp(tmp, "SCALEK") != 0) {
     _error = 100;
   }

@@ -10,12 +10,15 @@ LiquidCrystal_I2C lcd(LCD_ADDRESS,16,2);  // set the LCD address to 0x27 for a 1
 
 byte sys_state;
 byte readCard[4];   // Stores scanned ID read from RFID Module
-char measuredWeight[7]; // Stores weight in ram
+byte measuredWeight[7]; // Stores weight in ram
 DateTime enteringTime;  //last time readed on the RTC
 DateTime timerStarted;
 long backlightStart;
 long lastPoll;
 ElcanWifi wifi;
+#ifdef WITH_WEIGHT
+ElcanScale scale;
+#endif
 
 struct card_block {
   byte card_uid[4];

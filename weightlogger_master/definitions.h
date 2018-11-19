@@ -43,9 +43,6 @@
 #define TAG_POS_END 10
 #define TAG_REM_START 10
 #define TAG_PACKET_SIZE 11 // tag example: 96484C4F, 00-C8 (0 to 200), 0/1
-/**
- * RF Protocol Constants
- */
-#define SCALE_I2C_ADDR 0x20
+#define SCALE_I2C_ADDR 0x42
 
 #define CLEAR_SERIAL while(Serial.available()) { byte t = Serial.read(); }

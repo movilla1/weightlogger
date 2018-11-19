@@ -8,6 +8,7 @@
 #define SEND_INIT_STR 16
 #define SEND_WEIGHT 64
 #define LED 8
+#define WEIGHT_LENGTH 7
 
 char weight[10];
 char wireBuffer[10];
@@ -32,6 +33,7 @@ void setup() {
 }
 
 void loop() {
+  byte tmp;
   switch(sysState) {
     case READY:
 #ifdef NEWSCALE
@@ -41,10 +43,10 @@ void loop() {
       memset(weight,0, sizeof(weight));
 #endif
 #ifdef OLDSCALE
-      if (Serial.available()) {
+      if (Serial.available() >= 7) {
         for (pos=0; pos < 7; pos++) {
           tmp = Serial.read();
-          if (tmp == 0x1B) {
+          if (tmp == 0x1C) {
             memcpy(wireBuffer, weight, WEIGHT_LENGTH);
             memset(weight,0, sizeof(weight));
           } else {
@@ -58,16 +60,18 @@ void loop() {
 }
 
 void checkCommand(int count) {
-  if (count==3) {
-    byte b = Wire.read(); //get the first byte only
-    switch(b) {
-      case 'I':
-        sysState = SEND_INIT_STR;
-        break;
-      case 'W':
-        sysState = SEND_WEIGHT;
-        break;
-    }
+  byte b;
+  b = Wire.read(); //get the first byte only
+  switch(b) {
+    case 'I':
+      sysState = SEND_INIT_STR;
+      break;
+    case 'W':
+      sysState = SEND_WEIGHT;
+      break;
+  }
+  while (Wire.available()) {
+    b = Wire.read(); //clear the extra data sent, if any
   }
 }
 
@@ -77,11 +81,11 @@ void answerMaster() {
       digitalWrite(LED, LOW);
       sendLastReadedWeight();
       digitalWrite(LED, HIGH);
+      sysState = READY;
       break;
     case SEND_INIT_STR:
-      memset(wireBuffer, 0, sizeof(wireBuffer));
-      strcat (wireBuffer, "INIOK");
-      Wire.println(wireBuffer);
+      Wire.println(F("SCALEK"));
+      sysState = READY;
       break;
   }
 }

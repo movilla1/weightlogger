@@ -1,5 +1,5 @@
 //#define DEBUG true
-//#define WITH_WEIGHT true
+#define WITH_WEIGHT true
 #define WITH_WIFI true
 #include <Wire.h>
 #include <SPI.h>
@@ -8,6 +8,7 @@
 #include <LiquidCrystal_I2C.h>
 
 #include "elcan_wifi.h"
+#include "scale_i2c.h"
 #include "eepromblock.h"
 #include "definitions.h"
 #include "globals.h"
@@ -149,23 +150,32 @@ void send_to_server() {
   char timestr[21];
   memset(tmp, 0, sizeof(tmp));
   memset(timestr, 0, sizeof(timestr));
-  sprintf(timestr, "%d-%02d-%02d|%02d:%02d:%02d", enteringTime.year(), enteringTime.month(),
+  sprintf(tmp, "%02x%02x%02x%02x*", readCard[0], readCard[1], readCard[2], readCard[3]);
+  sprintf(timestr, "%04d-%02d-%02d %02d:%02d:%02d", enteringTime.year(), enteringTime.month(),
     enteringTime.day(), enteringTime.hour(), enteringTime.minute(), enteringTime.second());
-  sprintf(tmp, "%02x%02x%02x%02x|", readCard[0], readCard[1], readCard[2], readCard[3]);
   strcat(tmp, timestr);
-  strcat(tmp, "|");
+  strcat(tmp, "*");
   strncat(tmp, measuredWeight, 6);
+#ifdef DEBUG
+  Serial.write("#");
+  Serial.println(tmp);
+#endif
   wifi.sendEntry(tmp);
 }
 
 void send_intrussion_attemp_to_server(){
   char tmp[48];
   char timestr[21];
-  enteringTime = rtc.now();
-  sprintf(timestr, "%d-%02d-%02d|%02d:%02d:%02d", enteringTime.year(), enteringTime.month(),
-    enteringTime.day(), enteringTime.hour(), enteringTime.minute(), enteringTime.second());
-  sprintf(tmp, "%02x%02x%02x%02x|", readCard[0], readCard[1], readCard[2], readCard[3]);
+  DateTime stamp = rtc.now();
+  sprintf(tmp, "%02x%02x%02x%02x", readCard[0], readCard[1], readCard[2], readCard[3]);
+  strcat(tmp, "*");
+  sprintf(timestr, "%04d-%02d-%02d %02d:%02d:%02d", stamp.year(), stamp.month(),
+    stamp.day(), stamp.hour(), stamp.minute(), stamp.second());
   strcat(tmp, timestr);
+#ifdef DEBUG
+  Serial.write("#");
+  Serial.println(tmp);
+#endif
   wifi.sendIntrussionAttemp(tmp);
 }
 
