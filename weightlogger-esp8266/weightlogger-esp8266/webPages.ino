@@ -156,9 +156,16 @@ void tag_strings_to_array(String id, String pos, String rmv) {
   strcat(tag, rmv.c_str());
   tagReady = true;
 }
-
+/**
+ * This function expects a user and password to allow to proceed, 
+ * plus the following:
+ * ti: Tag ID in hex
+ * po: Position in hex too.
+ * rm: on or off indicating if the operation is a remove or add (on removes, off adds)
+ */
 void handleSentTag() {
-  if (!(server.hasArg("usr") && server.hasArg("pwd") && server.hasArg("ti") && server.hasArg("po"))) {
+  if (!(server.hasArg("usr") && server.hasArg("pwd") && 
+      server.hasArg("ti") && server.hasArg("po"))) {
     server.send(404, "text/plain", "Invalid request");
     return;
   }
