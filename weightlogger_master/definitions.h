@@ -10,6 +10,7 @@
 #define READ_RFID     8
 #define READ_RTC      16
 #define READ_WEIGHT   32
+#define READ_WEIGHT2  40
 #define OPEN_BARRIER  64
 #define WRITE_RECORD  128
 #define UNKNOWN_CARD  137
@@ -20,6 +21,7 @@
 /**
  * Ports used
  */
+#define PUSH_BUTTON 2
 #define BUZZER    3
 #define BARRERA   4
 #define WIFI_RX   5

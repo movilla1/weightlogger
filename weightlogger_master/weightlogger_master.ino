@@ -12,6 +12,10 @@
 #include "eepromblock.h"
 #include "definitions.h"
 #include "globals.h"
+
+void actOnButton() {
+  buttonPressed = true;
+}
 /**
  * System setup
  */
@@ -22,6 +26,7 @@ void setup() {
   pinMode(BUZZER, OUTPUT);
   pinMode(RFID_SS, OUTPUT);
   pinMode(RFID_RST, OUTPUT);
+  pinMode(PUSH_BUTTON, INPUT_PULLUP);
   digitalWrite(BARRERA, LOW);
   digitalWrite(BUZZER, LOW);
 #ifdef WITH_WEIGHT
@@ -36,6 +41,7 @@ void setup() {
   backlightStart = 0;
   lastPoll = 0;
   delay(5000);
+  buttonPressed = false;
 #ifdef WITH_WIFI
   Serial.begin(115200, SERIAL_8N1);
   if (wifi.begin()) {
@@ -44,6 +50,7 @@ void setup() {
     sys_state = ERROR_WIFI;
   }
 #endif
+  attachInterrupt(digitalPinToInterrupt(PUSH_BUTTON), actOnButton, FALLING);
 }
 
 void loop() {
@@ -77,6 +84,13 @@ void loop() {
  #ifdef WITH_WEIGHT
       scale.get_weight(measuredWeight);
  #endif
+      sys_state = READ_WEIGHT2;
+      break;
+    case READ_WEIGHT2:
+      open_barrier();
+      while(!buttonPressed); //wait until the driver pushes the button
+      delay(2000); //wait 2 more seconds when the driver pushed the button
+      scale.get_weight(secondWeight);
       sys_state = WRITE_RECORD;
       break;
     case WRITE_RECORD:
@@ -129,7 +143,7 @@ bool check_card_and_act() {
 
 void open_barrier() {
   digitalWrite(BARRERA, 1);
-  delay(8000); //wait until the barrier acknowledges the open command
+  delay(4000); //wait until the barrier acknowledges the open command
   digitalWrite(BARRERA, 0); //release Barrier switch
 }
 
@@ -156,6 +170,8 @@ void send_to_server() {
   strcat(tmp, timestr);
   strcat(tmp, "*");
   strncat(tmp, measuredWeight, 6);
+  strcat(tmp, "*");
+  strncat(tmp, secondWeight, 6);
 #ifdef DEBUG
   Serial.write("#");
   Serial.println(tmp);

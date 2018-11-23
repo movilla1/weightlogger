@@ -11,6 +11,8 @@ LiquidCrystal_I2C lcd(LCD_ADDRESS,16,2);  // set the LCD address to 0x27 for a 1
 byte sys_state;
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte measuredWeight[7]; // Stores weight in ram
+byte secondWeight[7];
+volatile bool buttonPressed;
 DateTime enteringTime;  //last time readed on the RTC
 DateTime timerStarted;
 long backlightStart;
