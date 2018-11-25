@@ -11,6 +11,10 @@ void lcd_show_ready() {
   lcd.print(F("Esperando..."));
 }
 
+void lcd_show_move() {
+  lcd_show_message(F("Proximo Eje"));
+}
+
 void lcd_show_ip() {
 #ifdef WITH_WIFI  
   char ipaddress[18];

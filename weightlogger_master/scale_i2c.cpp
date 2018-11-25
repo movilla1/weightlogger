@@ -39,10 +39,14 @@ void ElcanScale::get_weight(byte *dest) {
   Wire.requestFrom(_i2c_address, 7u);
   while (Wire.available()) {
     char b = Wire.read();
-    if (b != 0xFF) {
+    if (b != 0xFF && b != 0x00) {
       tmp[pos] = b;
       pos ++;
     }
+  }
+  if (pos==0) {
+    strcat(tmp,"000000");
+    pos = 6;
   }
   tmp[pos+1] = 0x00;
   memcpy(dest, tmp, pos);

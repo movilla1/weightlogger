@@ -40,7 +40,7 @@ void setup() {
   sys_state = READY;
   backlightStart = 0;
   lastPoll = 0;
-  delay(5000);
+  delay(STARTUP_DELAY);
   buttonPressed = false;
 #ifdef WITH_WIFI
   Serial.begin(115200, SERIAL_8N1);
@@ -51,6 +51,8 @@ void setup() {
   }
 #endif
   attachInterrupt(digitalPinToInterrupt(PUSH_BUTTON), actOnButton, FALLING);
+  memset(secondWeight, 0, sizeof(secondWeight));
+  memset(measuredWeight, 0, sizeof(measuredWeight));
 }
 
 void loop() {
@@ -82,19 +84,25 @@ void loop() {
     case READ_WEIGHT:
       lcd_show_wait();
  #ifdef WITH_WEIGHT
+      buttonPressed = false;
       scale.get_weight(measuredWeight);
- #endif
       sys_state = READ_WEIGHT2;
+ #else
+      sys_state = WRITE_RECORD;
+ #endif
       break;
     case READ_WEIGHT2:
+#ifdef WITH_WEIGHT
       open_barrier();
+      lcd_show_move();
       while(!buttonPressed); //wait until the driver pushes the button
       delay(2000); //wait 2 more seconds when the driver pushed the button
       scale.get_weight(secondWeight);
+#endif
       sys_state = WRITE_RECORD;
       break;
     case WRITE_RECORD:
-#ifdef WITH_WIFI    
+#ifdef WITH_WIFI
       send_to_server();
 #endif
       timerStarted = rtc.now();
@@ -143,7 +151,7 @@ bool check_card_and_act() {
 
 void open_barrier() {
   digitalWrite(BARRERA, 1);
-  delay(4000); //wait until the barrier acknowledges the open command
+  delay(BARRIER_DURATION); //wait until the barrier acknowledges the open command
   digitalWrite(BARRERA, 0); //release Barrier switch
 }
 
