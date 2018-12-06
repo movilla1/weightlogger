@@ -4,6 +4,7 @@
  */
 #define READY         1
 #define ERROR_WIFI    2
+#define ERROR_SCALE   3
 #define ERROR_RFID    4
 #define ERROR_RTC     5
 #define ERROR_INVALID 7
@@ -24,8 +25,6 @@
 #define PUSH_BUTTON 2
 #define BUZZER    3
 #define BARRERA   4
-#define WIFI_RX   5
-#define WIFI_TX   6
 #define RFID_RST  9    //Pin 9 para el reset del RC522
 #define RFID_SS   10  //Pin 10 para el SS (SDA) del RC522
 /**

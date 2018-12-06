@@ -10,6 +10,8 @@
     "string_view": "cpp",
     "twi.h": "c",
     "ostream": "cpp",
-    "istream": "cpp"
+    "istream": "cpp",
+    "iostream": "cpp",
+    "cerrno": "cpp"
   }
 }

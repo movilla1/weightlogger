@@ -17,6 +17,10 @@ void show_error(uint8_t error_code) {
       blinks = 4;
       lcd.print(F("Error 503"));
       break;
+    case ERROR_SCALE:
+      blinks = 5;
+      lcd.print(F("Error 504"));
+      break;
     default:
       lcd.print(F("Error 500"));
       blinks = 1;

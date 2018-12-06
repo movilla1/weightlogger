@@ -14,14 +14,17 @@
 #include "globals.h"
 
 void actOnButton() {
-  buttonPressed = true;
+  byte x;
+  for (x = 0; x< 255; x++); //mini delay for bounce & spureous elimination
+  if (digitalRead(PUSH_BUTTON)==0) {
+    buttonPressed = true;
+  }
 }
+
 /**
  * System setup
  */
 void setup() {
-  pinMode(WIFI_RX, INPUT);
-  pinMode(WIFI_TX, OUTPUT);
   pinMode(BARRERA, OUTPUT);
   pinMode(BUZZER, OUTPUT);
   pinMode(RFID_SS, OUTPUT);
@@ -29,15 +32,17 @@ void setup() {
   pinMode(PUSH_BUTTON, INPUT_PULLUP);
   digitalWrite(BARRERA, LOW);
   digitalWrite(BUZZER, LOW);
+  sys_state = READY;
 #ifdef WITH_WEIGHT
-  scale.begin(SCALE_I2C_ADDR); // according to wheight measurement device
+  if (!scale.begin(SCALE_I2C_ADDR)) { // according to wheight measurement device
+    sys_state = ERROR_SCALE;
+  }
 #endif
   SPI.begin();           // MFRC522 Hardware uses SPI protocol
   Wire.begin();
   lcd.begin(16,2);
   initialize_rtc();
   initialize_rfid();
-  sys_state = READY;
   backlightStart = 0;
   lastPoll = 0;
   delay(STARTUP_DELAY);
@@ -155,13 +160,10 @@ void open_barrier() {
   digitalWrite(BARRERA, 0); //release Barrier switch
 }
 
-void start_time_measurement() {
-  timerStarted = rtc.now();
-}
-
 bool check_elapsed_time() {
   DateTime current = rtc.now();
-  if ((current - timerStarted).totalseconds() >= WAITING_TIME) {
+  TimeSpan diff = current - timerStarted;
+  if (diff.totalseconds() >= WAITING_TIME) {
     return true;
   }
   return false;

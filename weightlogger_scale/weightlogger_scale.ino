@@ -14,6 +14,7 @@ char weight[10];
 char wireBuffer[10];
 char pos;
 byte sysState;
+long last;
 
 void setup() {
 #ifdef NEWSCALE
@@ -30,6 +31,7 @@ void setup() {
   pos = 0;
   sysState = READY;
   digitalWrite(LED, HIGH);
+  last = millis();
 }
 
 void loop() {
@@ -46,13 +48,22 @@ void loop() {
       if (Serial.available() >= 7) {
         for (pos=0; pos < 7; pos++) {
           tmp = Serial.read();
-          if (tmp == 0x1C) {
+          if (tmp == 0x1C || tmp == 0x1B) {
             memcpy(wireBuffer, weight, WEIGHT_LENGTH);
             memset(weight,0, sizeof(weight));
           } else {
             weight[pos] = tmp;
           }
+          if (tmp==0x1C) {
+            digitalWrite(LED, HIGH);
+          } else {
+            digitalWrite(LED, LOW);
+          }
         }
+      }
+      if (millis() - last > 4000) {
+        Serial.println("Alive!");
+        last=millis();
       }
 #endif
       break;
