@@ -27,10 +27,7 @@ void show_error(uint8_t error_code) {
       break;
   }
   for (byte i=0; i < blinks; i++) {
-    digitalWrite(BUZZER, LOW); //turn off the BUZZER
-    delay(300);
-    digitalWrite(BUZZER, HIGH);
-    delay(300);
+    tone(BUZZER, 1500, 400);
   }
   delay(500); //wait 1/2 second between displays at least;
 }

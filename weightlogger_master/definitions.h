@@ -37,7 +37,7 @@
 #define MAX_EEPROM_POSITION 200 * sizeof(struct card_block)
 #define WAITING_TIME 5 // Mandatory delay in seconds
 #define MAX_WEIGHT_WAIT_TIME 3000 // 3 seconds
-#define LCD_ADDRESS 0x27
+#define LCD_ADDRESS 0x3F
 #define LIGHT_DURATION 5000 // 5 seconds with the light on.
 #define POLLING_INTERVAL 1000
 #define TAG_UID_START 0
@@ -48,4 +48,9 @@
 #define TAG_PACKET_SIZE 11 // tag example: 96484C4F, 00-C8 (0 to 200), 0/1
 #define SCALE_I2C_ADDR 0x42
 
+/**
+ * Macros
+ * 
+ */
 #define CLEAR_SERIAL while(Serial.available()) { byte t = Serial.read(); }
+#define DO_KNOWN_BEEPS for (byte b=0; b<2; b++) { tone(BUZZER, 1200, 200); delay(80); }

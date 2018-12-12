@@ -1,5 +1,5 @@
 //#define DEBUG true
-#define WITH_WEIGHT true
+//#define WITH_WEIGHT true
 #define WITH_WIFI true
 #include <Wire.h>
 #include <SPI.h>
@@ -147,7 +147,7 @@ bool check_card_and_act() {
   ret = is_known_card(readCard);
   if (ret > 0) {
     sys_state = READ_RTC;
-    do_known_beeps();
+    DO_KNOWN_BEEPS;
   } else {
     sys_state = UNKNOWN_CARD;
   }
@@ -170,8 +170,8 @@ bool check_elapsed_time() {
 }
 
 void send_to_server() {
-  char tmp[48];
-  char timestr[21];
+  char tmp[50];
+  char timestr[30];
   memset(tmp, 0, sizeof(tmp));
   memset(timestr, 0, sizeof(timestr));
   sprintf(tmp, "%02x%02x%02x%02x*", readCard[0], readCard[1], readCard[2], readCard[3]);
@@ -190,11 +190,11 @@ void send_to_server() {
 }
 
 void send_intrussion_attemp_to_server(){
-  char tmp[48];
-  char timestr[21];
+  char tmp[50];
+  char timestr[30];
   DateTime stamp = rtc.now();
   sprintf(tmp, "%02x%02x%02x%02x", readCard[0], readCard[1], readCard[2], readCard[3]);
-  strcat(tmp, "*");
+  strncat(tmp, "*" ,1);
   sprintf(timestr, "%04d-%02d-%02d %02d:%02d:%02d", stamp.year(), stamp.month(),
     stamp.day(), stamp.hour(), stamp.minute(), stamp.second());
   strcat(tmp, timestr);
@@ -209,19 +209,10 @@ void alertUnknown() {
   lcd_show_message(F("Acceso negado,  Informando..."));
   send_intrussion_attemp_to_server();
   for (uint8_t i=0; i<3; i++) {
-    digitalWrite(BUZZER, HIGH);
+    tone(BUZZER, 1800, 500);
     delay(150);
-    digitalWrite(BUZZER, LOW);
+    tone(BUZZER, 1000, 500);
     delay(150);
-  }
-}
-
-void do_known_beeps() {
-  for (byte b=0; b<2; b++) {
-    digitalWrite(BUZZER, HIGH);
-    delay(80);
-    digitalWrite(BUZZER, LOW);
-    delay(80);
   }
 }
 
