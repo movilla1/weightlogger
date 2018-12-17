@@ -10,8 +10,9 @@
 #include "converters.h"
 #include "elcan_wifi.h"
 #include "scale_i2c.h"
-#include "eepromblock.h"
 #include "definitions.h"
+#include "card_format.h"
+#include "card_manager.h"
 
 char sys_state;
 char measuredWeight[7]; // Stores weight in ram

@@ -3,7 +3,7 @@
 
 template <class T> int EEPROM_writeBlock(int ee, const T& value)
 {
-    const byte* p = (const byte*)(const void*)&value;
+    const char* p = (const char*)(const void*)&value;
     unsigned int i;
     for (i = 0; i < sizeof(value); i++)
           EEPROM.write(ee++, *p++);
@@ -12,7 +12,7 @@ template <class T> int EEPROM_writeBlock(int ee, const T& value)
 
 template <class T> int EEPROM_readBlock(int ee, T& value)
 {
-    byte* p = (byte*)(void*)&value;
+    char* p = (char*)(void*)&value;
     unsigned int i;
     for (i = 0; i < sizeof(value); i++)
           *p++ = EEPROM.read(ee++);

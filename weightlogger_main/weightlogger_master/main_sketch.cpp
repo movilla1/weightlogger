@@ -1,11 +1,7 @@
 ﻿//#define DEBUG true
-#define WITH_WEIGHT true
+//#define WITH_WEIGHT true
 #define WITH_WIFI true
 #include <Arduino.h>
-#include "elcan_lcd.h"
-#include "definitions.h"
-#include "card_format.h"
-#include "card_manager.h"
 #include "globals.h"
 #include "main.h"
 
