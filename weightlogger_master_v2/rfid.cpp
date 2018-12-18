@@ -1,21 +1,22 @@
 // Initialization code for the parts.
 #include "rfid.h"
+MFRC522 rfidObj(RFID_SS, RFID_RST);
 
 RfidManager::RfidManager() {
-  memset(this->readCard, 0, sizeof(this->readCard));
-  this->mfrc522 = MFRC522(RFID_SS, RFID_RST);
+  memset(readCard, 0, sizeof(readCard));
+  mfrc522 = &rfidObj;
 }
 
 void RfidManager::begin() {
-  this->mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
-  this->mfrc522.PCD_SetAntennaGain(this->mfrc522.RxGain_max); // Max reading distance
+  mfrc522->PCD_Init();    // Initialize MFRC522 Hardware
+  mfrc522->PCD_SetAntennaGain(mfrc522->RxGain_max); // Max reading distance
 }
 
 unsigned char RfidManager::getID() {
-  if ( ! this->mfrc522.PICC_IsNewCardPresent()) { //If a new PICC placed to RFID reader continue
+  if ( ! mfrc522->PICC_IsNewCardPresent()) { //If a new PICC placed to RFID reader continue
     return 0;
   }
-  if ( ! this->mfrc522.PICC_ReadCardSerial()) {   //Since a PICC placed get Serial and continue
+  if ( ! mfrc522->PICC_ReadCardSerial()) {   //Since a PICC placed get Serial and continue
     return 0;
   }
   // every PICC as they have 4 byte UID
@@ -23,7 +24,7 @@ unsigned char RfidManager::getID() {
   Serial.print("#");
 #endif
   for ( uint8_t i = 0; i < 4; i++) {  //
-    this->readCard[i] = this->mfrc522.uid.uidByte[i];
+    readCard[i] = mfrc522->uid.uidByte[i];
 #ifdef DEBUG
     Serial.print(readCard[i], HEX);
     Serial.print("-");
@@ -32,7 +33,7 @@ unsigned char RfidManager::getID() {
 #ifdef DEBUG
     Serial.println(" ");
 #endif
-  this->mfrc522.PICC_HaltA(); // Stop reading
+  mfrc522->PICC_HaltA(); // Stop reading
   return 1;
 }
 

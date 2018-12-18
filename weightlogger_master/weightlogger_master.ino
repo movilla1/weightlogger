@@ -1,5 +1,5 @@
 //#define DEBUG true
-#define WITH_WEIGHT true
+//#define WITH_WEIGHT true
 #define WITH_WIFI true
 #include <Wire.h>
 #include <SPI.h>

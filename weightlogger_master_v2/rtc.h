@@ -4,7 +4,7 @@
 class ElcanRtc {
   public:
     ElcanRtc();
-    void initialize();
+    bool initialize();
     long value();
     void adjust_from_serial();
     DateTime now();

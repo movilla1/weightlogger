@@ -6,7 +6,7 @@
 
 class RfidManager {
   protected:
-    MFRC522 mfrc522; //Creamos el objeto para el RC522
+    MFRC522 *mfrc522; //Creamos el objeto para el RC522
     
   public:
     char readCard[4];

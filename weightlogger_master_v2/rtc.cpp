@@ -5,7 +5,7 @@
 ElcanRtc::ElcanRtc() {
 }
 
-void ElcanRtc::initialize() {
+bool ElcanRtc::initialize() {
   bool exit_init = false;
   unsigned char init_return;
   char attemps = 0;
@@ -19,6 +19,10 @@ void ElcanRtc::initialize() {
       break;
     }
   }
+  if (attemps < 2)
+    return true;
+  else
+    return false;
 }
 
 DateTime ElcanRtc::now() {

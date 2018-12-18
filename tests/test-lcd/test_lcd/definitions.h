@@ -24,8 +24,7 @@
 #define BARRERA   4
 #define WIFI_RX   5
 #define WIFI_TX   6
-#define RFID_RST  9    //Pin 9 para el reset del RC522
-#define RFID_SS   10  //Pin 10 para el SS (SDA) del RC522
+
 /**
  * System Constants
  *
@@ -45,4 +44,8 @@
 #define TAG_PACKET_SIZE 11 // tag example: 96484C4F, 00-C8 (0 to 200), 0/1
 #define SCALE_I2C_ADDR 0x42
 
+/************************************************************************/
+/* Macros                                                               */
+/************************************************************************/
 #define CLEAR_SERIAL while(Serial.available()) { byte t = Serial.read(); }
+#define FS(x) (__FlashStringHelper*)(x)
