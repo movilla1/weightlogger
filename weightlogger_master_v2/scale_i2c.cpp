@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <Arduino.h>
-#include "scale_i2c.h"
+#include "includes/scale_i2c.h"
 
 ElcanScale::ElcanScale() {
   _error = 0;

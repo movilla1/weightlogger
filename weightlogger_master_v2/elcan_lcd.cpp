@@ -1,13 +1,12 @@
 #include <LiquidCrystal_I2C.h>
 #include <Arduino.h>
-#include "definitions.h"
-#include "elcan_lcd.h"
-#include "substring.h"
+#include "includes/definitions.h"
+#include "includes/elcan_lcd.h"
+#include "includes/substring.h"
 
 LiquidCrystal_I2C lcdObj(LCD_ADDRESS, 16, 2);
 
 ElcanLCDManager::ElcanLCDManager() {
-  
   lcd = &lcdObj;
 }
 
@@ -21,33 +20,34 @@ void ElcanLCDManager::show_error(char error_code) {
   switch(error_code) {
     case ERROR_RFID:
     blinks = 2;
-    lcd->print(FS("Error 502"));
+    lcd->print(F("Error 502"));
     break;
     case ERROR_RTC:
     blinks = 3;
-    lcd->print(FS("Error 501"));
+    lcd->print(F("Error 501"));
     case ERROR_WIFI:
     blinks = 4;
-    lcd->print(FS("Error 503"));
+    lcd->print(F("Error 503"));
     break;
     default:
-    lcd->print(FS("Error 500"));
+    lcd->print(F("Error 500"));
     blinks = 1;
     break;
   }
   for (char i=0; i < blinks; i++) {
-    tone(BUZZER, 1400, 300);
-    delay(200);
+    tone(BUZZER, 1400, 200);
+    delay(100);
   }
   delay(500); //wait 1/2 second between displays at least;
 }
 
 void ElcanLCDManager::show_ip(char *ipaddr) {
-  char text[32];
-  memset(text, 0x00, sizeof(text));
-  strcat(text, "Station IP......");
-  strcat(text, ipaddr);
-  show_message(text);
+  lcd->backlight();
+  backlightStart = millis();
+  lcd->setCursor(0,0);
+  lcd->print(F("Station IP..."));
+  lcd->setCursor(0,1);
+  lcd->print(ipaddr);
   delay(2500); //2 1/2 seconds delay to read the ip
   lcd->clear();
 }
@@ -56,7 +56,7 @@ void ElcanLCDManager::show_ready(char *dateString) {
   lcd->setCursor(0,0);
   lcd->print(dateString);
   lcd->setCursor(0,1);
-  lcd->print(FS("Esperando..."));
+  lcd->print(F("Esperando..."));
 }
 
 void ElcanLCDManager::show_message(char *msg) {

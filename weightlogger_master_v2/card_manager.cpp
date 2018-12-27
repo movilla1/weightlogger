@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include "definitions.h"
-#include "eepromblock.h"
-#include "card_format.h"
+#include "includes/definitions.h"
+#include "includes/eepromblock.h"
+#include "includes/card_format.h"
 
 /**
  * this function compares a card with the readed bytes,

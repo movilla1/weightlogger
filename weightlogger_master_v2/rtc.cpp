@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include "rtc.h"
-#include "definitions.h"
+#include "includes/rtc.h"
+#include "includes/definitions.h"
 
 ElcanRtc::ElcanRtc() {
 }

@@ -1,5 +1,6 @@
 // Initialization code for the parts.
-#include "rfid.h"
+#include "includes/rfid.h"
+
 MFRC522 rfidObj(RFID_SS, RFID_RST);
 
 RfidManager::RfidManager() {
@@ -36,4 +37,3 @@ unsigned char RfidManager::getID() {
   mfrc522->PICC_HaltA(); // Stop reading
   return 1;
 }
-

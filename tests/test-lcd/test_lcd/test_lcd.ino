@@ -1,11 +1,12 @@
 #include "elcan_lcd.h"
 #include "definitions.h"
 
+#define WAIT_ENTER while(cha != '\n'){cha = Serial.read();}
 char tmp[64];
 ElcanLCDManager lcdm;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("#Start");
   memset(tmp, 0, sizeof(tmp));
   Serial.println("#almost");
@@ -16,12 +17,20 @@ void setup() {
 }
 
 void loop() {
-  delay(2000);
+  char cha;
+  char ip[]="192.168.0.1";
   Serial.println("#Alive");
-  if (Serial.available()) {
-    Serial.readBytesUntil('\n', tmp, sizeof(tmp));
-  }
-  lcdm.show_message(tmp);
-  memset(tmp, 0, sizeof(tmp));//*/
-  //lcdm.show_error(3);
+  delay(2000);
+  Serial.println("#ready");
+  sprintf(tmp,"Wait, this is?");
+  lcdm.show_ready(tmp);
+  delay(2000);
+  Serial.println("#Light");
+  lcdm.light_on();
+  delay(2000);
+  Serial.print("#");
+  Serial.println(ip);
+  lcdm.show_ip(ip);
+  delay(1000);
+  //*/
 }

@@ -1,7 +1,7 @@
 #define DEBUG true
-//#define WITH_WEIGHT true
-//#define WITH_WIFI true
-#include "globals.h"
+#define WITH_WEIGHT true
+#define WITH_WIFI true
+#include "includes/globals.h"
 
 #define DO_KNOWN_BEEPS for(char b=0; b<2; b++){tone(BUZZER, 800, 100); delay(100);}
 #define DO_INTRUSSION_BEEPS for(char i=0; i<3; i++){tone(BUZZER, 1500, 200);delay(150);}
