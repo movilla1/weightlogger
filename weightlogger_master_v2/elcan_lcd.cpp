@@ -4,33 +4,31 @@
 #include "includes/elcan_lcd.h"
 #include "includes/substring.h"
 
-LiquidCrystal_I2C lcdObj(LCD_ADDRESS, 16, 2);
-
-ElcanLCDManager::ElcanLCDManager() {
-  lcd = &lcdObj;
+ElcanLCDManager::ElcanLCDManager() : LiquidCrystal_I2C(LCD_ADDRESS, 16, 2) {
+  // constructor initialized
 }
 
 void ElcanLCDManager::init() {
-  lcd->init();
+  begin(16,2);
 }
 
 void ElcanLCDManager::show_error(char error_code) {
   char blinks;
-  lcd->clear();
+  clear();
   switch(error_code) {
     case ERROR_RFID:
     blinks = 2;
-    lcd->print(F("Error 502"));
+    print(F("Error 502"));
     break;
     case ERROR_RTC:
     blinks = 3;
-    lcd->print(F("Error 501"));
+    print(F("Error 501"));
     case ERROR_WIFI:
     blinks = 4;
-    lcd->print(F("Error 503"));
+    print(F("Error 503"));
     break;
     default:
-    lcd->print(F("Error 500"));
+    print(F("Error 500"));
     blinks = 1;
     break;
   }
@@ -42,53 +40,53 @@ void ElcanLCDManager::show_error(char error_code) {
 }
 
 void ElcanLCDManager::show_ip(char *ipaddr) {
-  lcd->backlight();
+  backlight();
   backlightStart = millis();
-  lcd->setCursor(0,0);
-  lcd->print(F("Station IP..."));
-  lcd->setCursor(0,1);
-  lcd->print(ipaddr);
+  setCursor(0,0);
+  print(F("Station IP..."));
+  setCursor(0,1);
+  print(ipaddr);
   delay(2500); //2 1/2 seconds delay to read the ip
-  lcd->clear();
+  clear();
 }
 
 void ElcanLCDManager::show_ready(char *dateString) {
-  lcd->setCursor(0,0);
-  lcd->print(dateString);
-  lcd->setCursor(0,1);
-  lcd->print(F("Esperando..."));
+  setCursor(0,0);
+  print(dateString);
+  setCursor(0,1);
+  print(F("Esperando..."));
 }
 
 void ElcanLCDManager::show_message(char *msg) {
   char tmp[17];
   char len;
-  lcd->clear();
-  lcd->backlight();
+  clear();
+  backlight();
   backlightStart = millis();
   len = strlen(msg);
   if (len > 16) {
-    lcd->setCursor(0,0);
+    setCursor(0,0);
     substring(msg, tmp, 0, 15);
-    lcd->print(tmp);
+    print(tmp);
     memset(tmp, 0, sizeof(tmp));
-    lcd->setCursor(0,1);
+    setCursor(0,1);
     substring(msg, tmp, 16, len);
-    lcd->print(tmp);
+    print(tmp);
   } else {
-    lcd->print(msg);
+    print(msg);
   }
 }
 
 void ElcanLCDManager::check_light() {
   if (backlightStart > 0) {
     if (millis() - backlightStart > LIGHT_DURATION) {
-      lcd->noBacklight();
+      noBacklight();
       backlightStart = 0;
     }
   }
 }
 
 void ElcanLCDManager::light_on() {
-  lcd->backlight();
+  backlight();
   backlightStart = millis();
 }

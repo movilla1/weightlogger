@@ -2,12 +2,12 @@
 #include "includes/definitions.h"
 #include "includes/eepromblock.h"
 #include "includes/card_format.h"
-
+#define DEBUG 1
 /**
  * this function compares a card with the readed bytes,
  * if they match it returns true
  */
-bool compare_card(char *card_one, char *card_two) {
+bool compare_card(byte *card_one, byte *card_two) {
   char i;
   for (i = 0; i < CARD_UID_SIZE; i++) {
 #ifdef DEBUG    
@@ -27,11 +27,11 @@ bool compare_card(char *card_one, char *card_two) {
  * this function checks if a card id sent is known by the device, if so, 
  * it returns the card_number value, it returns 0 for unknown cards
  */
-char is_known_card(char *card_id) {
+byte is_known_card(byte *card_id) {
   struct card_block card;
   bool finish = false;
   int pos = 0;
-  char ret_val = 0;
+  byte ret_val = 0;
   while(!finish) {
     EEPROM_readBlock(pos, card);
     if (compare_card(card_id, card.card_uid)) {
@@ -41,6 +41,9 @@ char is_known_card(char *card_id) {
     if (pos > MAX_EEPROM_POSITION && finish == false) {
       finish = true;
       ret_val = 0;
+#ifdef DEBUG
+      Serial.println("#Not found");
+#endif
     }
     pos += sizeof(card);
   }
@@ -51,7 +54,7 @@ char is_known_card(char *card_id) {
  * Stores the card uid and card_number at the position indicated
  * positions are from 0 to 199
  */
-bool store_card(struct card_block card, char position) {
+bool store_card(struct card_block card, byte position) {
   int pos = (5 * position);
   if ( position < 200) {  //if we are not full capacity
     EEPROM_writeBlock(pos, card); //store the card
@@ -65,7 +68,7 @@ bool store_card(struct card_block card, char position) {
  * Erases the data for a card_block in EEPROM
  * @params pos with the position to erase
  */
-void erase_card(char pos) {
+void erase_card(byte pos) {
   if (pos > 200) //always inside the position limit.
     return;
   int ppos = (pos * sizeof(struct card_block));

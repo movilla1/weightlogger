@@ -8,11 +8,11 @@
 
 #ifndef CARD_FORMAT_H_
 #define CARD_FORMAT_H_
-
+#include <Arduino.h>
 
 struct card_block {
-  char card_uid[4];
-  char card_number;
+  byte card_uid[4];
+  byte card_number;
 };
 
 #endif /* CARD_FORMAT_H_ */

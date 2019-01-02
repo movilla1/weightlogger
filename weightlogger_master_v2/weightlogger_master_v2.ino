@@ -19,18 +19,13 @@ void setup() {
   pinMode(RFID_RST, OUTPUT);
   digitalWrite(BARRERA, LOW);
   digitalWrite(BUZZER, LOW);
-  Serial.begin(9600);
-  Serial.println("#Start");
 #ifdef WITH_WEIGHT
   scale.begin(SCALE_I2C_ADDR); // according to wheight measurement device
 #endif
-  Serial.println("#after scale");
   Wire.begin();
   SPI.begin();           // MFRC522 Hardware uses SPI protocol
   rtc.initialize();
-  Serial.println("#after rtc");
   rfid.begin();
-  Serial.println("#after rfid");
   sys_state = READY;
   backlightStart = 0;
   lastPoll = 0;
@@ -54,6 +49,7 @@ void loop() {
   DateTime tstamp;
   bool tmp;
   elcanLcd.check_light();
+  tstamp = rtc.now();
   switch(sys_state) {
     case ERROR_WIFI:
     case ERROR_RFID:
@@ -76,7 +72,7 @@ void loop() {
       break;
     case READ_RTC:
       elcanLcd.show_message("Acceso permitido");
-      enteringTime = rtc.now();
+      enteringTime = tstamp;
       sys_state = READ_WEIGHT;
       break;
     case READ_WEIGHT:
@@ -101,11 +97,14 @@ void loop() {
     case OPEN_BARRIER:
       elcanLcd.show_message("Avance...");
       open_barrier();
-      elcanLcd.light_on();
       sys_state = READY;
       break;
     case UNKNOWN_CARD:
-      alertUnknown();
+      elcanLcd.show_message("Acceso negado,  Informando...");
+      DO_INTRUSSION_BEEPS;
+      #ifdef WITH_WIFI
+        send_intrussion_attemp_to_server();
+      #endif
       sys_state = READY;
       break;
     case GET_TAG_DATA:
@@ -123,15 +122,22 @@ void loop() {
  * Read card must be checked against the known ones
  */
 bool check_card_and_act() {
-  char ret;
+  byte ret;
   ret = is_known_card(rfid.readCard);
   if (ret > 0) {
     sys_state = READ_RTC;
     DO_KNOWN_BEEPS;
   } else {
     sys_state = UNKNOWN_CARD;
+#ifdef DEBUG
+    Serial.println("#unknown card");
+#endif
   }
-  return ret;
+#ifdef DEBUG
+  Serial.println(ret, DEC);
+  Serial.println(sys_state, DEC);
+#endif
+  return ret > 0;
 }
 
 void open_barrier() {
@@ -185,12 +191,6 @@ void send_intrussion_attemp_to_server(){
 #ifdef WITH_WIFI
   wifi.sendIntrussionAttemp(tmp);
 #endif
-}
-
-void alertUnknown() {
-  elcanLcd.show_message("Acceso negado,  Informando...");
-  send_intrussion_attemp_to_server();
-  DO_INTRUSSION_BEEPS;
 }
 
 void get_tag_data() {

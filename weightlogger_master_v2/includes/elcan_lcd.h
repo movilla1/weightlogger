@@ -11,17 +11,16 @@
 #include "substring.h"
 #include <LiquidCrystal_I2C.h>
 
-class ElcanLCDManager {
-	protected:
-    LiquidCrystal_I2C *lcd;
+class ElcanLCDManager : LiquidCrystal_I2C {
+  protected:
     long backlightStart;
   public:
     void init();
-	  ElcanLCDManager();
-	  void show_message(char *msg);
-	  void show_error(char error_code);
-	  void show_ip(char *ipaddr);
-	  void show_ready(char *dateString);
+    ElcanLCDManager();
+    void show_message(char *msg);
+    void show_error(char error_code);
+    void show_ip(char *ipaddr);
+    void show_ready(char *dateString);
     void check_light();
     void light_on();
 };
