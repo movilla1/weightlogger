@@ -33,7 +33,7 @@
 #define MAX_EEPROM_POSITION 200 * sizeof(struct card_block)
 #define WAITING_TIME 10 // Mandatory delay in seconds
 #define MAX_WEIGHT_WAIT_TIME 3000 // 3 seconds
-#define LCD_ADDRESS 0x3F
+#define LCD_ADDRESS 0x27
 #define LIGHT_DURATION 4000 // 4 seconds with the light on.
 #define POLLING_INTERVAL 1000
 #define TAG_UID_START 0

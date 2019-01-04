@@ -1,10 +1,10 @@
-#define DEBUG true
+//#define DEBUG true
 #define WITH_WEIGHT true
 #define WITH_WIFI true
 #include "includes/globals.h"
 
-#define DO_KNOWN_BEEPS for(char b=0; b<2; b++){tone(BUZZER, 800, 100); delay(100);}
-#define DO_INTRUSSION_BEEPS for(char i=0; i<3; i++){tone(BUZZER, 1500, 200);delay(150);}
+#define DO_KNOWN_BEEPS for(char b=0; b<2; b++){tone(BUZZER, 800, 100); delay(300);}
+#define DO_INTRUSSION_BEEPS for(byte i=0; i<3; i++) {tone(BUZZER, 1500, 200);delay(350);}
 /**
  * System setup
  */
@@ -29,11 +29,16 @@ void setup() {
   sys_state = READY;
   backlightStart = 0;
   lastPoll = 0;
+  elcanLcd.init();
 #ifdef WITH_WIFI
   delay(9000);
   Serial.begin(115200, SERIAL_8N1);
   if (wifi.begin()) {
     wifi.get_ip(ipaddr);
+#ifdef DEBUG
+    Serial.print("#");
+    Serial.println(ipaddr);
+#endif
     elcanLcd.show_ip(ipaddr);
   } else {
     sys_state = ERROR_WIFI;
@@ -41,13 +46,13 @@ void setup() {
 #else
   elcanLcd.show_message("Initialized...");
 #endif
-  Serial.println("#all inits");
 }
 
 void loop() {
-  char dateString[22];
+  char dateString[25];
   DateTime tstamp;
   bool tmp;
+  byte ret;
   elcanLcd.check_light();
   tstamp = rtc.now();
   switch(sys_state) {
@@ -68,7 +73,13 @@ void loop() {
       }
       break;
     case READ_RFID:
-      check_card_and_act(); //checks the card and if its valid, it starts the sequence
+      ret = is_known_card(rfid.readCard);
+      if (ret > 0) {
+        sys_state = READ_RTC;
+        DO_KNOWN_BEEPS;
+      } else {
+        sys_state = UNKNOWN_CARD;
+      }; //checks the card and if its valid, it starts the sequence
       break;
     case READ_RTC:
       elcanLcd.show_message("Acceso permitido");
@@ -96,12 +107,15 @@ void loop() {
       break;
     case OPEN_BARRIER:
       elcanLcd.show_message("Avance...");
-      open_barrier();
+      digitalWrite(BARRERA, 1);
+      delay(1200); //wait until the barrier acknowledges the open command
+      digitalWrite(BARRERA, 0); //release Barrier switch
       sys_state = READY;
       break;
     case UNKNOWN_CARD:
       elcanLcd.show_message("Acceso negado,  Informando...");
       DO_INTRUSSION_BEEPS;
+      delay(1000);
       #ifdef WITH_WIFI
         send_intrussion_attemp_to_server();
       #endif
@@ -118,34 +132,6 @@ void loop() {
   }
 }
 
-/**
- * Read card must be checked against the known ones
- */
-bool check_card_and_act() {
-  byte ret;
-  ret = is_known_card(rfid.readCard);
-  if (ret > 0) {
-    sys_state = READ_RTC;
-    DO_KNOWN_BEEPS;
-  } else {
-    sys_state = UNKNOWN_CARD;
-#ifdef DEBUG
-    Serial.println("#unknown card");
-#endif
-  }
-#ifdef DEBUG
-  Serial.println(ret, DEC);
-  Serial.println(sys_state, DEC);
-#endif
-  return ret > 0;
-}
-
-void open_barrier() {
-  digitalWrite(BARRERA, 1);
-  delay(8000); //wait until the barrier acknowledges the open command
-  digitalWrite(BARRERA, 0); //release Barrier switch
-}
-
 bool check_elapsed_time() {
   DateTime current = rtc.now();
   TimeSpan diff_time = (current - timerStarted);
@@ -158,6 +144,7 @@ bool check_elapsed_time() {
 void send_to_server() {
   char tmp[48];
   char timestr[21];
+#ifdef WITH_WIFI
   memset(tmp, 0, sizeof(tmp));
   memset(timestr, 0, sizeof(timestr));
   sprintf(tmp, "%02x%02x%02x%02x*", rfid.readCard[0], rfid.readCard[1], rfid.readCard[2], rfid.readCard[3]);
@@ -166,11 +153,6 @@ void send_to_server() {
   strcat(tmp, timestr);
   strcat(tmp, "*");
   strncat(tmp, (char *)measuredWeight, 6);
-#ifdef DEBUG
-  Serial.write("#");
-  Serial.println(tmp);
-#endif
-#ifdef WITH_WIFI
   wifi.sendEntry(tmp);
 #endif
 }
@@ -178,17 +160,14 @@ void send_to_server() {
 void send_intrussion_attemp_to_server(){
   char tmp[48];
   char timestr[21];
+#ifdef WITH_WIFI
   DateTime stamp = rtc.now();
+  memset(tmp, 0, sizeof(tmp));
   sprintf(tmp, "%02x%02x%02x%02x", rfid.readCard[0], rfid.readCard[1], rfid.readCard[2], rfid.readCard[3]);
   strcat(tmp, "*");
   sprintf(timestr, "%04d-%02d-%02d %02d:%02d:%02d", stamp.year(), stamp.month(),
     stamp.day(), stamp.hour(), stamp.minute(), stamp.second());
   strcat(tmp, timestr);
-#ifdef DEBUG
-  Serial.write("#");
-  Serial.println(tmp);
-#endif
-#ifdef WITH_WIFI
   wifi.sendIntrussionAttemp(tmp);
 #endif
 }

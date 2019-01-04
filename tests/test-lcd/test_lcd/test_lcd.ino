@@ -31,6 +31,9 @@ void loop() {
   Serial.print("#");
   Serial.println(ip);
   lcdm.show_ip(ip);
-  delay(1000);
+  delay(2000);
+  Serial.println("#Long message");
+  lcdm.show_message("INIT working second round again");
+  delay(1400);
   //*/
 }

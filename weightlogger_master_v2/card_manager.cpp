@@ -2,20 +2,14 @@
 #include "includes/definitions.h"
 #include "includes/eepromblock.h"
 #include "includes/card_format.h"
-#define DEBUG 1
+//#define DEBUG 1
 /**
  * this function compares a card with the readed bytes,
  * if they match it returns true
  */
 bool compare_card(byte *card_one, byte *card_two) {
-  char i;
+  byte i;
   for (i = 0; i < CARD_UID_SIZE; i++) {
-#ifdef DEBUG    
-    Serial.print("#");
-    Serial.print(card_one[i], HEX);
-    Serial.print("-");
-    Serial.println(card_two[i], HEX);
-#endif
     if (card_one[i] != card_two[i]) {
       return false;
     }
@@ -41,9 +35,6 @@ byte is_known_card(byte *card_id) {
     if (pos > MAX_EEPROM_POSITION && finish == false) {
       finish = true;
       ret_val = 0;
-#ifdef DEBUG
-      Serial.println("#Not found");
-#endif
     }
     pos += sizeof(card);
   }

@@ -9,7 +9,7 @@ ElcanLCDManager::ElcanLCDManager() : LiquidCrystal_I2C(LCD_ADDRESS, 16, 2) {
 }
 
 void ElcanLCDManager::init() {
-  begin(16,2);
+  LiquidCrystal_I2C::init();
 }
 
 void ElcanLCDManager::show_error(char error_code) {
@@ -42,6 +42,7 @@ void ElcanLCDManager::show_error(char error_code) {
 void ElcanLCDManager::show_ip(char *ipaddr) {
   backlight();
   backlightStart = millis();
+  clear();
   setCursor(0,0);
   print(F("Station IP..."));
   setCursor(0,1);
@@ -80,6 +81,7 @@ void ElcanLCDManager::show_message(char *msg) {
 void ElcanLCDManager::check_light() {
   if (backlightStart > 0) {
     if (millis() - backlightStart > LIGHT_DURATION) {
+      clear();
       noBacklight();
       backlightStart = 0;
     }

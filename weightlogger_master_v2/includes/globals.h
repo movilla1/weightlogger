@@ -20,7 +20,7 @@ DateTime enteringTime;  //last time readed on the RTC
 DateTime timerStarted;
 long backlightStart;
 long lastPoll;
-ElcanLCDManager elcanLcd();
+ElcanLCDManager elcanLcd;
 #ifdef WITH_WIFI
 ElcanWifi wifi;
 #endif
