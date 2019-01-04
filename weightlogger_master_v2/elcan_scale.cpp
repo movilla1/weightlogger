@@ -1,6 +1,8 @@
 #include <Wire.h>
 #include <Arduino.h>
-#include "includes/scale_i2c.h"
+#include "includes/elcan_scale.h"
+
+#define DEBUG 1
 
 ElcanScale::ElcanScale() {
   _error = 0;
@@ -46,6 +48,10 @@ void ElcanScale::get_weight(char *dest) {
   }
   tmp[pos+1] = 0x00;
   memcpy(dest, tmp, pos);
+  #ifdef DEBUG
+  Serial.print("#");
+  Serial.println(tmp);
+  #endif
 }
 
 bool ElcanScale::is_error() {

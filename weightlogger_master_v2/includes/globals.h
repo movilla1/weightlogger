@@ -9,7 +9,7 @@
 #include "elcan_lcd.h"
 #include "converters.h"
 #include "elcan_wifi.h"
-#include "scale_i2c.h"
+#include "elcan_scale.h"
 #include "definitions.h"
 #include "card_format.h"
 #include "card_manager.h"
