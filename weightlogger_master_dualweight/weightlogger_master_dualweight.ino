@@ -95,14 +95,20 @@ void loop() {
       sys_state = READ_WEIGHT;
       break;
     case READ_WEIGHT:
+#if DUAL_WEIGHT
       elcanLcd.show_message("Proximo eje...");
-      sys_state = WRITE_RECORD;
+#else
+      elcanLcd.show_message("Espere por favor");
+#endif
 #ifdef WITH_WEIGHT
       scale.get_weight(measuredWeight);
   #ifdef DUAL_WEIGHT
       buttonPressed = false;
       sys_state = READ_WEIGHT2;
   #endif
+#endif
+#if (!WITH_WEIGHT && !DUAL_WEIGHT)
+      sys_state = WRITE_RECORD;
 #endif
       break;
 #ifdef DUAL_WEIGHT
