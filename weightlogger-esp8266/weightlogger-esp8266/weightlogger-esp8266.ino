@@ -273,12 +273,14 @@ String getContentType(String filename) { // convert the file extension to the MI
 String getPassword(char identifier) {
   char pass[PASSWORD_MAX_LENGTH+1];
   int position;
+  String read_pass;
   memset(pass, 0, sizeof(pass));
   position = (identifier==ADMIN_USR) ? PASSWORD_STORAGE0 : PASSWORD_STORAGE1;
   read_data_from_eeprom(pass, PASSWORD_MAX_LENGTH, position);
-  String read_pass = pass;
   if (pass[0]==0xFF || pass[0]==0x00) {
     read_pass = "elcanAdmin!"; //default password for any case when empty.
+  } else {
+    read_pass = pass;
   }
   return read_pass;
 }

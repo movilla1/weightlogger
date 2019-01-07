@@ -1,6 +1,6 @@
 {
     "board": "arduino:avr:nano",
-    "sketch": "weightlogger_master_v2/weightlogger_master_v2.ino",
+    "sketch": "weightlogger_master_dualweight/weightlogger_master_dualweight.ino",
     "port": "/dev/ttyUSB0",
     "configuration": "cpu=atmega328old",
     "programmer": "USBtinyISP"

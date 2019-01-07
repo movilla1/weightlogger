@@ -23,16 +23,18 @@ ElcanLCDManager elcanLcd;
 ElcanRtc rtc;
 MFRC522 rfidObj(RFID_SS, RFID_RST);
 RfidManager rfid(&rfidObj);
-volatile bool buttonPressed;
 
 #ifdef WITH_WIFI
 ElcanWifi wifi;
 #endif
 
 #ifdef WITH_WEIGHT
-byte measuredWeight[7]; // Stores weight in ram
-byte secondWeight[7];
-ElcanScale scale;
+  byte measuredWeight[7]; // Stores weight in ram
+  #ifdef DUAL_WEIGHT
+    byte secondWeight[7];
+    volatile bool buttonPressed;
+  #endif
+  ElcanScale scale;
 #endif
 
 #define _GLOBALS_ 1

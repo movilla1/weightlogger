@@ -1,6 +1,7 @@
 //#define DEBUG true
 #define WITH_WEIGHT true
 #define WITH_WIFI true
+#define DUAL_WEIGHT true
 #include "includes/globals.h"
 
 /**
@@ -47,10 +48,6 @@ void setup() {
   Serial.begin(115200, SERIAL_8N1);
   if (wifi.begin()) {
     wifi.get_ip(ipaddr);
-#ifdef DEBUG
-    Serial.print("#");
-    Serial.println(ipaddr);
-#endif
     elcanLcd.show_ip(ipaddr);
   } else {
     sys_state = ERROR_WIFI;
@@ -99,25 +96,26 @@ void loop() {
       break;
     case READ_WEIGHT:
       elcanLcd.show_message("Proximo eje...");
+      sys_state = WRITE_RECORD;
 #ifdef WITH_WEIGHT
       scale.get_weight(measuredWeight);
+  #ifdef DUAL_WEIGHT
       buttonPressed = false;
       sys_state = READ_WEIGHT2;
-#else
-      sys_state = WRITE_RECORD;
+  #endif
 #endif
       break;
+#ifdef DUAL_WEIGHT
     case READ_WEIGHT2:
-#ifdef WITH_WEIGHT
       DO_OPEN_BARRIER
       while(!buttonPressed); //wait until the driver pushes the button
       delay(2000); //wait 2 more seconds when the driver pushed the button
       scale.get_weight(secondWeight);
-#endif
       sys_state = WRITE_RECORD;
       break;
+#endif
     case WRITE_RECORD:
-#ifdef WITH_WIFI    
+#ifdef WITH_WIFI
       send_to_server();
 #endif
       timerStarted = rtc.now();
@@ -174,8 +172,10 @@ void send_to_server() {
   strcat(tmp, timestr);
   strcat(tmp, "*");
   strncat(tmp, (char *)measuredWeight, 6);
+#ifdef DUAL_WEIGHT
   strcat(tmp, "*");
   strncat(tmp, (char *)secondWeight, 6);
+#endif
   wifi.sendEntry(tmp);
 #endif
 }
