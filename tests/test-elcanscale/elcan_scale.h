@@ -7,10 +7,12 @@ class ElcanScale {
     bool error;
     byte _error;
     uint8_t _i2c_address;
-
+  protected:
+    bool do_get_weight(byte *);
+    
   public:
-    ElcanScale();
-    bool begin(uint8_t i2c_address);
+    ElcanScale(byte i2c_address);
+    bool begin();
     void get_weight(byte *);
     bool is_error();
 };

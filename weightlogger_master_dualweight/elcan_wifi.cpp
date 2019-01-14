@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "includes/elcan_wifi.h"
 #include <Wire.h>
+//#define DEBUG 1
 /**
  * This library requires the Wire library included and initialized.
  * @author: Mario O. Villarroel
@@ -50,16 +51,35 @@ bool ElcanWifi::is_error() {
 }
 
 char ElcanWifi::sendEntry(char *data) {
-  char pos = 0;
-  char len = 0;
-  Serial.write("S");
+  char tmpText[50];
+  char len;
+  memset(tmpText, 0, sizeof(tmpText));
+  tmpText[0]='S';
   len = strlen(data);
-  for (char pos = 0; pos < len; pos++) {
-    Serial.write(data[pos]);
+  memcpy(tmpText+1, data, len);
+  #ifdef DEBUG
+  Serial.print("#");
+  Serial.println(tmpText);
+  #endif
+  for (char b=0; b <= len; b++) {
+    Serial.write(tmpText[b]);
   }
   Serial.write(EOL);
   Serial.flush();
-  return pos;
+  return len;
+}
+
+void ElcanWifi::sendIntrussionAttemp(char *data) {
+  char text[32];
+  char len = strlen(data);
+  memset(text,0,sizeof(text));
+  text[0]='N';
+  memcpy(text+1, data, len); // 8 bytes: 4 cardID, 4 timestamp
+  for (char b=0; b <= len; b++) {
+    Serial.write(text[b]);
+  }
+  Serial.write(EOL);
+  Serial.flush();
 }
 
 int ElcanWifi::available() {
@@ -93,17 +113,4 @@ void ElcanWifi::empty_serial_buffer() {
   while(Serial.available()) {
     t = Serial.read();
   }
-}
-
-void ElcanWifi::sendIntrussionAttemp(char *data) {
-  char text[32];
-  char len = strlen(data);
-  memset(text,0,sizeof(text));
-  text[0]='N';
-  memcpy(text+1, data, len); // 8 bytes: 4 cardID, 4 timestamp
-  for (char b=0; b < len; b++) {
-    Serial.write(text[b]);
-  }
-  Serial.write(EOL);
-  Serial.flush();
 }

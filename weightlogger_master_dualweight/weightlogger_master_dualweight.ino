@@ -1,4 +1,5 @@
 //#define DEBUG true
+//#define WIDEBUG 1
 #define WITH_WEIGHT true
 #define WITH_WIFI true
 #define DUAL_WEIGHT true
@@ -32,7 +33,7 @@ void setup() {
   digitalWrite(BARRERA, LOW);
   digitalWrite(BUZZER, LOW);
 #ifdef WITH_WEIGHT
-  scale.begin(SCALE_I2C_ADDR); // according to wheight measurement device
+  scale.begin(); // according to wheight measurement device
 #endif
   Wire.begin();
   SPI.begin();           // MFRC522 Hardware uses SPI protocol
@@ -95,16 +96,15 @@ void loop() {
       sys_state = READ_WEIGHT;
       break;
     case READ_WEIGHT:
-#if DUAL_WEIGHT
-      elcanLcd.show_message("Proximo eje...");
-#else
-      elcanLcd.show_message("Espere por favor");
-#endif
 #ifdef WITH_WEIGHT
       scale.get_weight(measuredWeight);
+      delay(100);
   #ifdef DUAL_WEIGHT
       buttonPressed = false;
       sys_state = READ_WEIGHT2;
+      elcanLcd.show_message("Proximo eje...");
+  #else
+        elcanLcd.show_message("Espere por favor");
   #endif
 #endif
 #if (!WITH_WEIGHT && !DUAL_WEIGHT)
@@ -169,6 +169,7 @@ bool check_elapsed_time() {
 void send_to_server() {
   char tmp[48];
   char timestr[21];
+  byte len;
 #ifdef WITH_WIFI
   memset(tmp, 0, sizeof(tmp));
   memset(timestr, 0, sizeof(timestr));
@@ -177,10 +178,10 @@ void send_to_server() {
     enteringTime.day(), enteringTime.hour(), enteringTime.minute(), enteringTime.second());
   strcat(tmp, timestr);
   strcat(tmp, "*");
-  strncat(tmp, (char *)measuredWeight, 6);
+  strcat(tmp, (char *)measuredWeight);
 #ifdef DUAL_WEIGHT
   strcat(tmp, "*");
-  strncat(tmp, (char *)secondWeight, 6);
+  strcat(tmp, (char *)secondWeight);
 #endif
   wifi.sendEntry(tmp);
 #endif

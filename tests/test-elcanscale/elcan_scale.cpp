@@ -1,8 +1,8 @@
 #include <Wire.h>
 #include <Arduino.h>
-#include "includes/elcan_scale.h"
+#include "elcan_scale.h"
 
-//#define DEBUG 1
+#define DEBUG 1
 
 ElcanScale::ElcanScale(byte addr) {
   _error = 0;

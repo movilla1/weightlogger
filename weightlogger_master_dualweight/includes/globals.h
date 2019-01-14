@@ -29,12 +29,12 @@ ElcanWifi wifi;
 #endif
 
 #ifdef WITH_WEIGHT
-  byte measuredWeight[7]; // Stores weight in ram
+  byte measuredWeight[8]; // Stores weight in ram
   #ifdef DUAL_WEIGHT
-    byte secondWeight[7];
+    byte secondWeight[8];
     volatile bool buttonPressed;
   #endif
-  ElcanScale scale;
+  ElcanScale scale(SCALE_I2C_ADDR);
 #endif
 
 #define _GLOBALS_ 1

@@ -46,11 +46,16 @@ void loop() {
       if (Serial.available() >= 7) {
         for (pos=0; pos < 7; pos++) {
           tmp = Serial.read();
-          if (tmp == 0x1C) {
+          if (tmp == 0x1C || tmp == 0x1B) {
             memcpy(wireBuffer, weight, WEIGHT_LENGTH);
-            memset(weight,0, sizeof(weight));
+            memset(weight, 0, sizeof(weight));
           } else {
             weight[pos] = tmp;
+          }
+          if (tmp == 0x1C) {
+            digitalWrite(LED, HIGH);
+          } else {
+            digitalWrite(LED, LOW);
           }
         }
       }
@@ -80,6 +85,7 @@ void answerMaster() {
     case SEND_WEIGHT:
       digitalWrite(LED, LOW);
       sendLastReadedWeight();
+      memset(wireBuffer, 0, sizeof(wireBuffer));
       digitalWrite(LED, HIGH);
       sysState = READY;
       break;

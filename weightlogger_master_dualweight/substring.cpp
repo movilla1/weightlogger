@@ -20,3 +20,12 @@ void short_concat(byte dest[], byte src[])
   }
   dest[c] = '\0';
 }
+
+void byte_ncat(char *dst, byte *src, byte len) {
+  byte dstlen = strlen(dst) - 1;
+  byte c;
+  for (c=0; c<len; c++){
+    dst[dstlen + c] = src[c];
+  }
+  dst[dstlen + c + 1] = 0x00;
+}
