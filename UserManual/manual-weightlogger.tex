@@ -1,0 +1,57 @@
+\documentclass[a4paper,spanish]{article}
+\usepackage[left=3cm, right=2cm, top=2cm]{geometry}
+\usepackage[spanish]{babel}
+\usepackage[printwatermark]{xwatermark}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{epigraph}
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+\usepackage{hyperref}
+
+\def\curdate{2019-02-01}
+\def\documentdate{Cordoba, Argentina, 2019-02-01}
+\def\distribdate{2019-02-01}
+\author{%
+	Mario O. Villarroel \\
+	System Design/Developer\\
+	\texttt{movilla@elcansoftware.com}\vspace{20pt} \\
+	Pablo Giachero\\
+	Product Owner\\
+	\texttt{pgiachero@elcansoftware.com}
+}
+
+\usepackage{elcan}
+
+\newwatermark[pages=1-3,color=red!50,angle=45,scale=1,xpos=0,ypos=0]{\includegraphics{images/logo}}
+
+\begin{document}
+	\begin{titlepage}
+		\noindent
+		\titlepagedecoration
+		\titlefont Manual de usuario\par
+		\vspace*{15pt}
+		\subtitlefont WeightLogger\par
+		\epigraph{Manual de usuario para el sistema weighlogger.}%
+		{\textit{\documentdate}\\ \textsc{Elcan Software}}
+		\null\vfill
+		\vspace*{1cm}
+		\noindent
+		\hfill
+		\begin{minipage}{0.50\linewidth}
+		    \begin{flushright}
+		        \printauthor
+		    \end{flushright}
+		\end{minipage}
+		%
+		\begin{minipage}{0.02\linewidth}
+		    \rule{1pt}{125pt}
+		\end{minipage}
+	\end{titlepage}
+	\tableofcontents
+	\include{doc-intro}
+	\input{document-body}
+\end{document}

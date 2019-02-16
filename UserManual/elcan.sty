@@ -1,0 +1,93 @@
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{elcan}[2017/09/20 Elcan Software Document Package]
+
+\RequirePackage{xcolor}
+\RequirePackage{graphicx}
+\RequirePackage{amsmath}
+\RequirePackage{tikz}
+\RequirePackage{epigraph}
+\RequirePackage{colortbl}
+\RequirePackage{float}
+
+\renewcommand\epigraphflush{flushright}
+\renewcommand\epigraphsize{\normalsize}
+\setlength\epigraphwidth{0.7\textwidth}
+
+\definecolor{titlepagecolor}{cmyk}{1,.60,0,.40}
+
+\DeclareFixedFont{\titlefont}{OT1}{pbk}{b}{it}{0.4in}
+\makeatletter                       
+\def\printauthor{%                  
+    {\large \@author}}              
+\makeatother
+\DeclareFixedFont{\subtitlefont}{OT1}{lmss}{b}{it}{0.3in}
+
+\newcommand\titlepagedecoration{
+	\begin{tikzpicture}[remember picture,overlay,shorten >= -10pt]
+		\coordinate (aux1) at ([yshift=-15pt]current page.north east);
+		\coordinate (aux2) at ([yshift=-410pt]current page.north east);
+		\coordinate (aux3) at ([xshift=-4.5cm]current page.north east);
+		\coordinate (aux4) at ([yshift=-150pt]current page.north east);
+		
+		\begin{scope}[titlepagecolor!40,line width=12pt,rounded corners=12pt]
+			\draw
+			  (aux1) -- coordinate (a)
+			  ++(225:5) --
+			  ++(-45:5.1) coordinate (b);
+			\draw[shorten <= -10pt]
+			  (aux3) --
+			  (a) --
+			  (aux1);
+			\draw[opacity=0.6,titlepagecolor,shorten <= -10pt]
+			  (b) --
+			  ++(225:2.2) --
+			  ++(-45:2.2);
+		\end{scope}
+		\draw[titlepagecolor,line width=8pt,rounded corners=8pt,shorten <= -10pt]
+		  (aux4) --
+		  ++(225:0.8) --
+		  ++(-45:0.8);
+		\begin{scope}[titlepagecolor!70,line width=6pt,rounded corners=8pt]
+			\draw[shorten <= -10pt]
+			  (aux2) --
+			  ++(225:3) coordinate[pos=0.45] (c) --
+			  ++(-45:3.1);
+			\draw
+			  (aux2) --
+			  (c) --
+			  ++(135:2.5) --
+			  ++(45:2.5) --
+			  ++(-45:2.5) coordinate[pos=0.3] (d);   
+			\draw 
+			  (d) -- +(45:1);
+		\end{scope}
+	\end{tikzpicture}
+}
+
+\newcommand{\elcanversion}[6]{
+	#1 & #2 & #3 & #4 & #5 & #6\\ 
+	\hline
+}
+
+\newenvironment{elcanversions}{
+  \begin{tabular}{|c|l|l|l|c|l|}
+	\hline
+	\rowcolor{gray!50}
+	\textbf{Version} & \textbf{Author} & \textbf{Reviewer} & \textbf{Approver} & \textbf{Date} & \textbf{Change log} \\
+	\hline
+}{\end{tabular}}
+
+\newcommand{\distributionline}[4]{
+	#1 & #2 & #3 & #4 & -  \\
+	\hline
+}
+
+\newenvironment{elcandistribution}{
+  \begin{tabular}{|l|l|l|c|l|}
+	\hline
+	\rowcolor{gray!50}
+	\textbf{Name} & \textbf{Role} & \textbf{E-mail} & \textbf{Date} & \textbf{Signature} \\
+	\hline
+}{\end{tabular}}
+
+\endinput

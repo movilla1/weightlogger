@@ -1,0 +1,6 @@
+\babel@toc {spanish}{}
+\contentsline {section}{\numberline {1}Control de version}{2}{section.1}
+\contentsline {section}{\numberline {2}Lista de distribuci\IeC {\'o}n del proyecto}{2}{section.2}
+\contentsline {section}{\numberline {3}Prop\IeC {\'o}sito del documento}{2}{section.3}
+\contentsline {section}{\numberline {4}Ingreso al sistema}{3}{section.4}
+\contentsline {section}{\numberline {5}Administraci\IeC {\'o}n de usuarios}{3}{section.5}
