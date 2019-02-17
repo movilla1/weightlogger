@@ -1,8 +1,8 @@
 #include <Wire.h>
 
 #define SCALE_I2C_ADDRESS 0x42
-#define OLD_SCALE = 29
-#define GAMMA_SCALE = 60
+#define OLD_SCALE 29
+#define GAMMA_SCALE 60
 #define MAX_WEIGHT_SIZE 7
 #define READY 0
 #define SEND_INIT_STR 16
